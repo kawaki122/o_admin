@@ -18,7 +18,7 @@ function App() {
   return (
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="demo-logo-vertical" />
+        <div className="demo-logo-vertical">OMedia</div>
         <Menu
           theme="dark"
           mode="inline"

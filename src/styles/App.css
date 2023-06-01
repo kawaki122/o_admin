@@ -18,7 +18,28 @@ code {
   align-items: center;
 }
 
+.actions-section {
+  display: flex;
+  column-gap: 15px;
+}
+
 .title-heading {
   font-weight: bold;
   font-size: 23px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: end;
+}
+
+.demo-logo-vertical {
+  height: 65px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
 }
