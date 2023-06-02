@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Space, Table } from "antd";
+import { Table } from "antd";
 import TitleBar from "../components/TitleBar";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import AddCity from "./AddCity";
 import { db } from "../config/dbConfig";
 
@@ -48,7 +48,56 @@ function City() {
   const handleAdd = (isOpen) => setState((p) => ({ ...p, isAddOpen: isOpen }));
 
   const handleRowChange = (_, selectedRows) => {
-    setState((prev) => ({ ...prev, selectedRows }));
+    setState((prev) => ({
+      ...prev,
+      selectedRows,
+      selectedEdit: selectedRows.length === 0 ? null : prev.selectedEdit,
+    }));
+  };
+
+  const handleUpsert = (action, data) => {
+    if (action === "ADD_ACTION") {
+      setState((prev) => {
+        const newState = { ...prev };
+        newState.cities = [...newState.cities, data];
+        newState.selectedEdit = null;
+        newState.isAddOpen = false;
+        return newState;
+      });
+    } else {
+      setState((prev) => {
+        const newCities = [...prev.cities];
+        const index = newCities.findIndex((item) => item.id === data.id);
+        if (index !== -1) {
+          newCities[index] = data;
+        }
+
+        return {
+          ...prev,
+          selectedEdit: null,
+          isAddOpen: false,
+          cities: newCities,
+        };
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const batch = writeBatch(db);
+      state.selectedRows.forEach((row) => {
+        batch.delete(doc(db, "cities", row.id));
+      });
+      await batch.commit();
+      setState((prev) => ({
+        ...prev,
+        selectedEdit: null,
+        selectedRows: [],
+        cities: prev.cities.filter((item) => !prev.selectedRows.includes(item)),
+      }));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -57,6 +106,7 @@ function City() {
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}
         onClose={() => handleAdd(false)}
+        onFinish={handleUpsert}
       />
       <Table
         bordered
@@ -78,6 +128,7 @@ function City() {
             title="Cities"
             onEdit={handleEdit}
             onAdd={() => handleAdd(true)}
+            onDelete={handleDelete}
             selectedLen={state.selectedRows.length}
           />
         )}

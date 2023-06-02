@@ -1,21 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, Modal, Input, Button } from "antd";
 import { db } from "../config/dbConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 
-function AddCity({ selectedEdit, isOpen, onClose }) {
+function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
-  const handleOk = (data) => {
-    setLoading(true)
-    addDoc(collection(db, "cities"), {
-        city: data.city,    
-    }).then((ref) => {
-        console.log(ref)
-        setLoading(false)
-    }).catch(e => {
-      console.log(e)
-      setLoading(false)
-    });
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if(isOpen && selectedEdit) {
+      form.setFieldsValue({ city: selectedEdit?.city })
+    } else {
+      form.resetFields()
+    }
+  }, [isOpen, selectedEdit])
+
+  const handleOk = async (data) => {
+    try {
+      setLoading(true);
+      if (selectedEdit) {
+        await updateDoc(doc(db, "cities", selectedEdit.id), {
+          city: data.city,
+        });
+        onFinish("UPDATE_ACTION", {
+          ...selectedEdit,
+          city: data.city,
+        });
+      } else {
+        const ref = await addDoc(collection(db, "cities"), {
+          city: data.city,
+        });
+        onFinish("ADD_ACTION", {
+          id: ref.id,
+          key: ref.id,
+          city: data.city,
+        });
+      }
+      setLoading(false);
+    } catch (e) {
+      console.log(e);
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,7 +51,12 @@ function AddCity({ selectedEdit, isOpen, onClose }) {
       footer={null}
       width={400}
     >
-      <Form layout="vertical" onFinish={handleOk} requiredMark={false}>
+      <Form
+        layout="vertical"
+        form={form}
+        onFinish={handleOk}
+        requiredMark={false}
+      >
         <Form.Item
           label="City Name"
           name="city"
