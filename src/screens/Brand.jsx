@@ -1,37 +1,37 @@
 import { useEffect, useState } from "react";
-import { Table } from "antd";
+import { Table, Avatar } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
-import AddCity from "../components/AddCity";
 import { db } from "../config/dbConfig";
+import AddBrand from "../components/AddBrand";
 import { useDispatch, useSelector } from "react-redux";
-import { addCity, setCities, updateCity } from "../store/slices/citySlice";
+import { addBrand, setBrands, updateBrand } from "../store/slices/brandSlice";
 
-function City() {
+function Brand() {
   const [state, setState] = useState({
     isAddOpen: false,
     loading: false,
     selectedRows: [],
     selectedEdit: null,
   });
-  const { cities } = useSelector((state) => state.city);
+  const { brands } = useSelector((state) => state.brand);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (cities.length === 0) {
-      fetchCities();
+    if (brands.length === 0) {
+      fetchBrands();
     }
-  }, [cities]);
+  }, [brands]);
 
-  const fetchCities = () => {
+  const fetchBrands = () => {
     setState((prev) => ({
       ...prev,
       loading: true,
     }));
-    getDocs(collection(db, "cities"))
+    getDocs(collection(db, "brands"))
       .then((querySnapshot) => {
         dispatch(
-          setCities(
+          setBrands(
             querySnapshot.docs.map((doc) => ({
               ...doc.data(),
               id: doc.id,
@@ -70,16 +70,15 @@ function City() {
 
   const handleUpsert = (action, data) => {
     if (action === "ADD_ACTION") {
-      dispatch(addCity(data));
+      dispatch(addBrand(data))
       setState((prev) => {
-        return {
-          ...prev,
-          selectedEdit: null,
-          isAddOpen: false,
-        };
+        const newState = { ...prev };
+        newState.selectedEdit = null;
+        newState.isAddOpen = false;
+        return newState;
       });
     } else {
-      dispatch(updateCity(data));
+      dispatch(updateBrand(data))
       setState((prev) => {
         return {
           ...prev,
@@ -95,12 +94,10 @@ function City() {
     try {
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "cities", row.id));
+        batch.delete(doc(db, "brands", row.id));
       });
       await batch.commit();
-      dispatch(
-        setCities(cities.filter((item) => !state.selectedRows.includes(item)))
-      );
+      dispatch(setBrands(brands.filter((item) => !state.selectedRows.includes(item))))
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
@@ -113,7 +110,7 @@ function City() {
 
   return (
     <div>
-      <AddCity
+      <AddBrand
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}
         onClose={() => handleAdd(false)}
@@ -121,7 +118,7 @@ function City() {
       />
       <Table
         bordered
-        dataSource={cities}
+        dataSource={brands}
         loading={state.loading}
         rowSelection={{
           type: "checkbox",
@@ -129,14 +126,24 @@ function City() {
         }}
         columns={[
           {
-            title: "City",
-            dataIndex: "city",
-            key: "city",
+            title: "Brand",
+            dataIndex: "name",
+            key: "name",
+            render: (_, data) => (
+              <div className="pic-name-section">
+                <Avatar
+                  shape="square"
+                  size="large"
+                  src={<img src={data.logo} alt="avatar" />}
+                />
+                <div>{data.name}</div>
+              </div>
+            ),
           },
         ]}
         title={() => (
           <TitleBar
-            title="Cities"
+            title="Brands"
             onEdit={handleEdit}
             onAdd={() => handleAdd(true)}
             onDelete={handleDelete}
@@ -148,4 +155,4 @@ function City() {
   );
 }
 
-export default City;
+export default Brand;

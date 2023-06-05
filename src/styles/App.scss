@@ -43,3 +43,16 @@ code {
   font-weight: bold;
   color: white;
 }
+
+.pic-name-section {
+  display: flex;
+  align-items: center;
+  span {
+    background: #f9f9f9;
+    margin-right: 10px;
+  }
+}
+
+.small-padding {
+  padding-left: 10px;
+}

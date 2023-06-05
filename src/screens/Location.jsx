@@ -1,46 +1,33 @@
+import { List, Card } from "antd";
 import { useEffect, useState } from "react";
-import { Table } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
-import AddCity from "../components/AddCity";
 import { db } from "../config/dbConfig";
-import { useDispatch, useSelector } from "react-redux";
-import { addCity, setCities, updateCity } from "../store/slices/citySlice";
+import AddLocation from "../components/AddLocation";
 
-function City() {
+function Location() {
   const [state, setState] = useState({
     isAddOpen: false,
-    loading: false,
+    locations: [],
+    loading: true,
     selectedRows: [],
     selectedEdit: null,
   });
-  const { cities } = useSelector((state) => state.city);
-  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (cities.length === 0) {
-      fetchCities();
-    }
-  }, [cities]);
+    fetchLocations();
+  }, []);
 
-  const fetchCities = () => {
-    setState((prev) => ({
-      ...prev,
-      loading: true,
-    }));
-    getDocs(collection(db, "cities"))
+  const fetchLocations = () => {
+    getDocs(collection(db, "locations"))
       .then((querySnapshot) => {
-        dispatch(
-          setCities(
-            querySnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
         setState((prev) => ({
           ...prev,
+          locations: querySnapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+            key: doc.id,
+          })),
           loading: false,
         }));
       })
@@ -70,22 +57,27 @@ function City() {
 
   const handleUpsert = (action, data) => {
     if (action === "ADD_ACTION") {
-      dispatch(addCity(data));
       setState((prev) => {
-        return {
-          ...prev,
-          selectedEdit: null,
-          isAddOpen: false,
-        };
+        const newState = { ...prev };
+        newState.locations = [...newState.locations, data];
+        newState.selectedEdit = null;
+        newState.isAddOpen = false;
+        return newState;
       });
     } else {
-      dispatch(updateCity(data));
       setState((prev) => {
+        const newLocations = [...prev.locations];
+        const index = newLocations.findIndex((item) => item.id === data.id);
+        if (index !== -1) {
+          newLocations[index] = data;
+        }
+
         return {
           ...prev,
           selectedEdit: data,
           selectedRows: [data],
           isAddOpen: false,
+          locations: newLocations,
         };
       });
     }
@@ -95,16 +87,16 @@ function City() {
     try {
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "cities", row.id));
+        batch.delete(doc(db, "locations", row.id));
       });
       await batch.commit();
-      dispatch(
-        setCities(cities.filter((item) => !state.selectedRows.includes(item)))
-      );
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
         selectedRows: [],
+        locations: prev.locations.filter(
+          (item) => !prev.selectedRows.includes(item)
+        ),
       }));
     } catch (error) {
       console.log(error);
@@ -113,39 +105,35 @@ function City() {
 
   return (
     <div>
-      <AddCity
+      <AddLocation
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}
         onClose={() => handleAdd(false)}
         onFinish={handleUpsert}
       />
-      <Table
-        bordered
-        dataSource={cities}
-        loading={state.loading}
-        rowSelection={{
-          type: "checkbox",
-          onChange: handleRowChange,
+      <TitleBar
+        title="Locations"
+        onEdit={handleEdit}
+        onAdd={() => handleAdd(true)}
+        onDelete={handleDelete}
+        selectedLen={state.selectedRows.length}
+      />
+
+      <List
+        grid={{
+          gutter: 16,
+          column: 4,
         }}
-        columns={[
-          {
-            title: "City",
-            dataIndex: "city",
-            key: "city",
-          },
-        ]}
-        title={() => (
-          <TitleBar
-            title="Cities"
-            onEdit={handleEdit}
-            onAdd={() => handleAdd(true)}
-            onDelete={handleDelete}
-            selectedLen={state.selectedRows.length}
-          />
+        loading={state.loading}
+        dataSource={state.locations}
+        renderItem={(item) => (
+          <List.Item>
+            <Card title={"Title"}>Card content</Card>
+          </List.Item>
         )}
       />
     </div>
   );
 }
 
-export default City;
+export default Location;
