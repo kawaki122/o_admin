@@ -18,38 +18,26 @@ function City() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (cities.length === 0) {
-      fetchCities();
-    }
-  }, [cities]);
+    fetchCities();
+  }, []);
 
   const fetchCities = () => {
-    setState((prev) => ({
-      ...prev,
-      loading: true,
-    }));
     getDocs(collection(db, "cities"))
       .then((querySnapshot) => {
-        dispatch(
-          setCities(
-            querySnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-        }));
+        if (querySnapshot.docs.length) {
+          dispatch(
+            setCities(
+              querySnapshot.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id,
+                key: doc.id,
+              }))
+            )
+          );
+        }
       })
       .catch((e) => {
         console.log(e);
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-        }));
       });
   };
 

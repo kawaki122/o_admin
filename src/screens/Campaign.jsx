@@ -1,40 +1,39 @@
 import { useEffect, useState } from "react";
-import { Table, Avatar } from "antd";
+import { Avatar, Table, Tag } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
+import AddCampaign from "../components/AddCampaign";
 import { db } from "../config/dbConfig";
-import AddBrand from "../components/AddBrand";
 import { useDispatch, useSelector } from "react-redux";
-import { addBrand, setBrands, updateBrand } from "../store/slices/brandSlice";
+import { addCampaign, setCampaigns, updateCampaign } from "../store/slices/campaignSlice";
+import { createTimeInterval } from "../utils/helpers";
 
-function Brand() {
+function Campaign() {
   const [state, setState] = useState({
     isAddOpen: false,
     loading: false,
     selectedRows: [],
     selectedEdit: null,
   });
-  const { brands } = useSelector((state) => state.brand);
+  const { campaigns } = useSelector((state) => state.campaign);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    fetchBrands();
+      fetchCampaigns();
   }, []);
 
-  const fetchBrands = () => {
-    getDocs(collection(db, "brands"))
+  const fetchCampaigns = () => {
+    getDocs(collection(db, "campaigns"))
       .then((querySnapshot) => {
-        if (querySnapshot.docs.length) {
-          dispatch(
-            setBrands(
-              querySnapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id,
-                key: doc.id,
-              }))
-            )
-          );
-        }
+        dispatch(
+          setCampaigns(
+            querySnapshot.docs.map((doc) => ({
+              ...doc.data(),
+              id: doc.id,
+              key: doc.id,
+            }))
+          )
+        );
       })
       .catch((e) => {
         console.log(e);
@@ -58,15 +57,16 @@ function Brand() {
 
   const handleUpsert = (action, data) => {
     if (action === "ADD_ACTION") {
-      dispatch(addBrand(data));
+      dispatch(addCampaign(data));
       setState((prev) => {
-        const newState = { ...prev };
-        newState.selectedEdit = null;
-        newState.isAddOpen = false;
-        return newState;
+        return {
+          ...prev,
+          selectedEdit: null,
+          isAddOpen: false,
+        };
       });
     } else {
-      dispatch(updateBrand(data));
+      dispatch(updateCampaign(data));
       setState((prev) => {
         return {
           ...prev,
@@ -82,11 +82,11 @@ function Brand() {
     try {
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "brands", row.id));
+        batch.delete(doc(db, "campaigns", row.id));
       });
       await batch.commit();
       dispatch(
-        setBrands(brands.filter((item) => !state.selectedRows.includes(item)))
+        setCampaigns(campaigns.filter((item) => !state.selectedRows.includes(item)))
       );
       setState((prev) => ({
         ...prev,
@@ -100,7 +100,7 @@ function Brand() {
 
   return (
     <div>
-      <AddBrand
+      <AddCampaign
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}
         onClose={() => handleAdd(false)}
@@ -108,7 +108,7 @@ function Brand() {
       />
       <Table
         bordered
-        dataSource={brands}
+        dataSource={campaigns}
         loading={state.loading}
         rowSelection={{
           type: "checkbox",
@@ -117,23 +117,41 @@ function Brand() {
         columns={[
           {
             title: "Brand",
-            dataIndex: "name",
-            key: "name",
+            dataIndex: "brand",
+            key: "brand",
             render: (_, data) => (
               <div className="pic-name-section">
                 <Avatar
                   shape="square"
                   size="large"
-                  src={<img src={data.logo} alt="avatar" />}
+                  src={<img src={data.brand.logo} alt="avatar" />}
                 />
-                <div>{data.name}</div>
+                <div>{data.brand.name}</div>
               </div>
+            ),
+          },
+          {
+            title: "Duration",
+            dataIndex: "duration",
+            key: "duration",
+            render: (_, data) => (
+              <div>
+                {createTimeInterval(data.from, data.to)}
+              </div>
+            ),
+          },
+          {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+            render: (_, data) => (
+              <Tag color={data.status==='active'?'green':'default'}>{data.status.toUpperCase()}</Tag>
             ),
           },
         ]}
         title={() => (
           <TitleBar
-            title="Brands"
+            title="Campaigns"
             onEdit={handleEdit}
             onAdd={() => handleAdd(true)}
             onDelete={handleDelete}
@@ -145,4 +163,4 @@ function Brand() {
   );
 }
 
-export default Brand;
+export default Campaign;

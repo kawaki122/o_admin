@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Form, Modal, Input, Button, Select, Row, Col } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import { useSelector } from "react-redux";
 
 function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { cities } = useSelector(state => state.city)
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -69,8 +71,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
               ]}
             >
               <Select placeholder="Select City">
-                <Select.Option value="Lahore">Lahore</Select.Option>
-                <Select.Option value="Karachi">Karachi</Select.Option>
+                {cities.map((item) => <Select.Option value={item.city}>{item.city}</Select.Option>)}
               </Select>
             </Form.Item>
           </Col>

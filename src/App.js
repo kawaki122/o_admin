@@ -7,6 +7,7 @@ import Brand from "./screens/Brand";
 import Location from "./screens/Location";
 import store from ".//store/store";
 import { Provider } from "react-redux";
+import Campaign from "./screens/Campaign";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: "/location",
         element: <Location />,
+      },
+      {
+        path: "/campaign",
+        element: <Campaign />,
       },
     ],
   },
