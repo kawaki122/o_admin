@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Avatar, Table, Tag } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
@@ -18,11 +18,7 @@ function Campaign() {
   const { campaigns } = useSelector((state) => state.campaign);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-      fetchCampaigns();
-  }, []);
-
-  const fetchCampaigns = () => {
+  const fetchCampaigns = useCallback(() => {
     getDocs(collection(db, "campaigns"))
       .then((querySnapshot) => {
         dispatch(
@@ -38,7 +34,11 @@ function Campaign() {
       .catch((e) => {
         console.log(e);
       });
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+      fetchCampaigns();
+  }, [fetchCampaigns]);
 
   const handleEdit = () => {
     const [row] = state.selectedRows;

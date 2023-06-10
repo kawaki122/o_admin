@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Table, Avatar } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
@@ -17,11 +17,7 @@ function Brand() {
   const { brands } = useSelector((state) => state.brand);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    fetchBrands();
-  }, []);
-
-  const fetchBrands = () => {
+  const fetchBrands = useCallback(() => {
     getDocs(collection(db, "brands"))
       .then((querySnapshot) => {
         if (querySnapshot.docs.length) {
@@ -39,7 +35,11 @@ function Brand() {
       .catch((e) => {
         console.log(e);
       });
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    fetchBrands();
+  }, [fetchBrands]);
 
   const handleEdit = () => {
     const [row] = state.selectedRows;

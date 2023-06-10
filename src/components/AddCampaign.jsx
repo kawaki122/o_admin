@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Select, DatePicker } from "antd";
+import { Form, Modal, Button, Select, DatePicker } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
@@ -20,7 +20,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
     } else {
       form.resetFields();
     }
-  }, [isOpen, selectedEdit]);
+  }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
     data.duration = data.duration.map(date => date.format('YYYY-MM-DD'));

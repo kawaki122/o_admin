@@ -13,7 +13,7 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
     } else {
       form.resetFields()
     }
-  }, [isOpen, selectedEdit])
+  }, [isOpen, selectedEdit, form])
 
   const handleOk = async (data) => {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Table } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
@@ -17,11 +17,7 @@ function City() {
   const { cities } = useSelector((state) => state.city);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    fetchCities();
-  }, []);
-
-  const fetchCities = () => {
+  const fetchCities = useCallback(() => {
     getDocs(collection(db, "cities"))
       .then((querySnapshot) => {
         if (querySnapshot.docs.length) {
@@ -39,7 +35,11 @@ function City() {
       .catch((e) => {
         console.log(e);
       });
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    fetchCities();
+  }, [fetchCities]);
 
   const handleEdit = () => {
     const [row] = state.selectedRows;

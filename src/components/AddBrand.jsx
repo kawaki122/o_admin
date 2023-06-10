@@ -7,7 +7,6 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [form] = Form.useForm();
 
@@ -36,7 +35,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     } else {
       form.resetFields();
     }
-  }, [isOpen, selectedEdit]);
+  }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
     const [{ response }] = data.file;
