@@ -5,8 +5,6 @@ import {
   Input,
   Button,
   Select,
-  Row,
-  Col,
   Space,
   Upload,
 } from "antd";
@@ -46,7 +44,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
     } else {
       form.resetFields();
     }
-  }, [isOpen, selectedEdit]);
+  }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
     data.files = data.files.map(file => file.response)

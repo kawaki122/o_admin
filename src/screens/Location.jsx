@@ -1,5 +1,5 @@
 import { List, Card, Avatar, Popconfirm } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import { db } from "../config/dbConfig";
@@ -16,12 +16,14 @@ import {
   updateLocation,
 } from "../store/slices/locationSlice";
 import { textElipsis } from "../utils/helpers";
+import LocationDetail from "../components/LocationDetail";
 
 function Location() {
   const [state, setState] = useState({
     isAddOpen: false,
     loading: false,
     selected: null,
+    isDetailOpen: false,
   });
   const {
     campaign: { campaigns },
@@ -29,13 +31,7 @@ function Location() {
   } = useSelector((state) => state);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (campaigns.length > 0 && locations.length === 0) {
-      fetchLocations();
-    }
-  }, [campaigns, locations]);
-
-  const fetchLocations = () => {
+  const fetchLocations = useCallback(() => {
     setState((prev) => ({
       ...prev,
       loading: true,
@@ -71,7 +67,13 @@ function Location() {
           loading: false,
         }));
       });
-  };
+  }, [dispatch, campaigns]);
+
+  useEffect(() => {
+    if (campaigns.length > 0 && locations.length === 0) {
+      fetchLocations();
+    }
+  }, [campaigns, locations, fetchLocations]);
 
   const handleEdit = (selected) => {
     setState((prev) => ({ ...prev, selected, isAddOpen: true }));
@@ -112,6 +114,10 @@ function Location() {
       console.log(error);
     }
   };
+
+  const toggleDetail = (open, data) => {
+    setState(prev => ({...prev, isDetailOpen: open, selected: open ? data : null }))
+  }
 
   return (
     <div>
@@ -155,7 +161,7 @@ function Location() {
                   />
                 </Popconfirm>,
                 <EditOutlined key="edit" onClick={() => handleEdit(item)} />,
-                <FullscreenOutlined key="ellipsis" />,
+                <FullscreenOutlined key="ellipsis" onClick={() => toggleDetail(true, item)} />,
               ]}
             >
               <Card.Meta
@@ -167,6 +173,7 @@ function Location() {
           </List.Item>
         )}
       />
+      <LocationDetail isOpen={state.isDetailOpen} onClose={() => toggleDetail(false)} />
     </div>
   );
 }
