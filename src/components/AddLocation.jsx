@@ -1,41 +1,69 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Select, Row, Col } from "antd";
-import { db } from "../config/dbConfig";
+import {
+  Form,
+  Modal,
+  Input,
+  Button,
+  Select,
+  Row,
+  Col,
+  Space,
+  Upload,
+} from "antd";
+import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
+import {
+  BorderBottomOutlined,
+  BorderLeftOutlined,
+  EnvironmentOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 
 function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  const { cities } = useSelector(state => state.city)
+  const { city, campaign } = useSelector((state) => state);
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
-      form.setFieldsValue({ city: selectedEdit?.city });
+      form.setFieldsValue({
+        campaign: selectedEdit?.campaign,
+        city: selectedEdit?.city,
+        address: selectedEdit?.address,
+        width: selectedEdit?.width,
+        height: selectedEdit?.height,
+        trafic_flow: selectedEdit?.trafic_flow,
+        files: selectedEdit?.files.map((url) => ({
+          uid: url,
+          name: "image.png",
+          status: "done",
+          url: url,
+          response: url,
+        })),
+      });
     } else {
       form.resetFields();
     }
   }, [isOpen, selectedEdit]);
 
   const handleOk = async (data) => {
+    data.files = data.files.map(file => file.response)
     try {
       setLoading(true);
       if (selectedEdit) {
-        await updateDoc(doc(db, "locations", selectedEdit.id), {
-          city: data.city,
-        });
+        await updateDoc(doc(db, "locations", selectedEdit.id), data);
         onFinish("UPDATE_ACTION", {
           ...selectedEdit,
-          city: data.city,
+          ...data,
         });
       } else {
-        const ref = await addDoc(collection(db, "locations"), {
-          city: data.city,
-        });
+        const ref = await addDoc(collection(db, "locations"), data);
         onFinish("ADD_ACTION", {
           id: ref.id,
           key: ref.id,
-          city: data.city,
+          ...data,
         });
       }
       setLoading(false);
@@ -45,12 +73,37 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
     }
   };
 
+  const customRequest = ({ file, onSuccess, onError, onProgress }) => {
+    const storageRef = ref(storage, `/files/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        // CONNECT ON PROGRESS
+        onProgress(progress);
+      },
+      (error) => {
+        // CONNECT ON ERROR
+        onError(error);
+      },
+      () => {
+        // Handle successful uploads on complete
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          onSuccess(downloadURL);
+        });
+      }
+    );
+  };
+
   return (
     <Modal
       title={`${selectedEdit ? "Edit" : "Add"} Location`}
       open={isOpen}
       onCancel={onClose}
       footer={null}
+      width={400}
     >
       <Form
         layout="vertical"
@@ -58,36 +111,129 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
         onFinish={handleOk}
         requiredMark={false}
       >
-        <Row>
-          <Col span={8}>
-            <Form.Item
-              label="City"
-              name="city"
-              rules={[
-                {
-                  required: true,
-                  message: "City is required",
-                },
-              ]}
-            >
-              <Select placeholder="Select City">
-                {cities.map((item) => <Select.Option value={item.city}>{item.city}</Select.Option>)}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={16}>
-            <div className="small-padding">
-            <Form.Item
-              label="Address"
-              name="address"
-              rules={[{ required: true, message: "Please input address!" }]}
-            >
-              <Input placeholder="Enter location address" />
-            </Form.Item>
+        <Form.Item
+          label="Campaign"
+          name="campaign"
+          rules={[
+            {
+              required: true,
+              message: "Campaign is required",
+            },
+          ]}
+        >
+          <Select placeholder="Select Campaign">
+            {campaign.campaigns.map((item) => (
+              <Select.Option value={item.id}>{item.brand.name}</Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Space.Compact style={{ width: "100%" }}>
+          <Form.Item
+            label="City"
+            name="city"
+            rules={[
+              {
+                required: true,
+                message: "City is required",
+              },
+            ]}
+          >
+            <Select placeholder="Select City">
+              {city.cities.map((item) => (
+                <Select.Option value={item.city}>{item.city}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Address"
+            name="address"
+            style={{ width: "100%" }}
+            rules={[{ required: true, message: "Please input address!" }]}
+          >
+            <Input
+              placeholder="Enter location address"
+              suffix={<EnvironmentOutlined />}
+            />
+          </Form.Item>
+        </Space.Compact>
+        <Space>
+          <Form.Item
+            label="Billboard Width"
+            name="width"
+            rules={[
+              {
+                required: true,
+                message: "Please input width!",
+              },
+            ]}
+          >
+            <Input
+              type="number"
+              prefix={<BorderBottomOutlined />}
+              placeholder="Enter Width"
+              suffix="FT"
+            />
+          </Form.Item>
+          <Form.Item
+            label="Billboard Height"
+            name="height"
+            rules={[{ required: true, message: "Please input height!" }]}
+          >
+            <Input
+              type="number"
+              prefix={<BorderLeftOutlined />}
+              placeholder="Enter Height"
+              suffix="FT"
+            />
+          </Form.Item>
+        </Space>
+        <Form.Item
+          label="Trafic Flow"
+          name="trafic_flow"
+          rules={[{ required: true, message: "Please input trafic flow!" }]}
+        >
+          <Input.TextArea rows={2} placeholder="Enter Trafic Flow" />
+        </Form.Item>
+        <Form.Item
+          label="Photos (Optional)"
+          valuePropName="fileList"
+          name="files"
+          rules={[
+            {
+              message: "Upload in progress...",
+              validator: (_, value) => {
+                if (value && value.some(item =>item.status === "uploading")) {
+                  return Promise.reject("Upload in progress...");
+                } else {
+                  return Promise.resolve();
+                }
+              },
+            },
+          ]}
+          getValueFromEvent={(e) => {
+            if (Array.isArray(e)) {
+              return e;
+            }
+            return e && e.fileList;
+          }}
+        >
+          <Upload
+            action="/upload"
+            listType="picture-card"
+            customRequest={customRequest}
+          >
+            <div>
+              <PlusOutlined />
+              <div
+                style={{
+                  marginTop: 8,
+                }}
+              >
+                Upload
+              </div>
             </div>
-          </Col>
-        </Row>
-
+          </Upload>
+        </Form.Item>
         <Form.Item className="form-actions">
           <Button type="primary" loading={loading} htmlType="submit">
             Submit

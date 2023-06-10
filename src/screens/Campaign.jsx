@@ -123,7 +123,6 @@ function Campaign() {
               <div className="pic-name-section">
                 <Avatar
                   shape="square"
-                  size="large"
                   src={<img src={data.brand.logo} alt="avatar" />}
                 />
                 <div>{data.brand.name}</div>
