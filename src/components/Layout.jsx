@@ -77,7 +77,7 @@ function SideLayout() {
             {
               key: "1",
               icon: <UserOutlined />,
-              label: <Link to={"/dashboard"}>Dashboard</Link>,
+              label: <Link to={"/"}>Dashboard</Link>,
             },
             {
               key: "2",
@@ -98,6 +98,11 @@ function SideLayout() {
               key: "5",
               icon: <VideoCameraOutlined />,
               label: <Link to={"/brand"}>Brand</Link>,
+            },
+            {
+              key: "6",
+              icon: <VideoCameraOutlined />,
+              label: <Link to={"/rider"}>Riders</Link>,
             },
           ]}
         />

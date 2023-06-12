@@ -52,3 +52,33 @@ code {
     margin-right: 10px;
   }
 }
+
+.list-tile-container {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  .tile-title {
+    // margin-bottom: 1px;
+    color: rgba(0, 0, 0, 0.88);
+    font-weight: 600;
+    font-size: 16px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .tile-rate {
+    font-size: 14px;
+    li {
+      margin-inline-end: 5px !important;
+    }
+  }
+  .tile-description {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    line-height: 1.5714285714285714;
+  }
+}
+
+.location-tab-child {
+  height: 250px;
+  overflow-y: auto;
+}

@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Form,
-  Modal,
-  Input,
-  Button,
-  Select,
-  Space,
-  Upload,
-} from "antd";
+import { Form, Modal, Input, Button, Select, Space, Upload } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
@@ -47,7 +39,11 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
-    data.files = data.files.map(file => file.response)
+    if (data.files) {
+      data.files = data.files.map((file) => file.response);
+    } else {
+      data.files = [];
+    }
     try {
       setLoading(true);
       if (selectedEdit) {
@@ -58,10 +54,12 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
         });
       } else {
         const ref = await addDoc(collection(db, "locations"), data);
+        const camp = campaign.campaigns.find(c => c.id === data.campaign)
         onFinish("ADD_ACTION", {
           id: ref.id,
           key: ref.id,
           ...data,
+          brand: camp?.brand,
         });
       }
       setLoading(false);
@@ -200,7 +198,10 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
             {
               message: "Upload in progress...",
               validator: (_, value) => {
-                if (value && value.some(item =>item.status === "uploading")) {
+                if (
+                  value &&
+                  value.some((item) => item.status === "uploading")
+                ) {
                   return Promise.reject("Upload in progress...");
                 } else {
                   return Promise.resolve();
