@@ -99,6 +99,11 @@ function SideLayout() {
               icon: <VideoCameraOutlined />,
               label: <Link to={"/brand"}>Brand</Link>,
             },
+            {
+              key: "6",
+              icon: <VideoCameraOutlined />,
+              label: <Link to={"/rider"}>Riders</Link>,
+            },
           ]}
         />
       </Sider>

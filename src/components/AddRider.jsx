@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload } from "antd";
+import { Form, Modal, Input, Button, Upload, InputNumber } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
-import { PlusOutlined } from "@ant-design/icons";
+import { PhoneOutlined, PlusOutlined } from "@ant-design/icons";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
-function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
+function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [form] = Form.useForm();
@@ -14,13 +14,14 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     if (isOpen && selectedEdit) {
       form.setFieldsValue({
         name: selectedEdit?.name,
+        phone: selectedEdit?.phone,
         file: [
           {
             uid: selectedEdit.id,
             name: "image.png",
             status: "done",
-            url: selectedEdit.logo,
-            response: selectedEdit.logo,
+            url: selectedEdit.picture,
+            response: selectedEdit.picture,
           },
         ],
       });
@@ -29,7 +30,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           uid: selectedEdit.id,
           name: "image.png",
           status: "done",
-          url: selectedEdit.logo,
+          url: selectedEdit.picture,
         },
       ]);
     } else {
@@ -43,25 +44,29 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     try {
       setLoading(true);
       if (selectedEdit) {
-        await updateDoc(doc(db, "brands", selectedEdit.id), {
+        await updateDoc(doc(db, "riders", selectedEdit.id), {
           name: data.name,
-          logo: response,
+          phone: data.phone,
+          picture: response,
         });
         onFinish("UPDATE_ACTION", {
           ...selectedEdit,
           name: data.name,
-          logo: response,
+          phone: data.phone,
+          picture: response,
         });
       } else {
-        const ref = await addDoc(collection(db, "brands"), {
+        const ref = await addDoc(collection(db, "riders"), {
           name: data.name,
-          logo: response,
+          phone: data.phone,
+          picture: response,
         });
         onFinish("ADD_ACTION", {
           id: ref.id,
           key: ref.id,
           name: data.name,
-          logo: response,
+          phone: data.phone,
+          picture: response,
         });
       }
       setLoading(false);
@@ -97,7 +102,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
 
   return (
     <Modal
-      title={`${selectedEdit ? "Edit" : "Add"} Brand`}
+      title={`${selectedEdit ? "Edit" : "Add"} Rider`}
       open={isOpen}
       onCancel={onClose}
       footer={null}
@@ -110,14 +115,21 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
         requiredMark={false}
       >
         <Form.Item
-          label="Brand Name"
+          label="Name"
           name="name"
-          rules={[{ required: true, message: "Please input brand name!" }]}
+          rules={[{ required: true, message: "Please input rider name!" }]}
         >
-          <Input />
+          <Input placeholder="Enter Rider Name" />
         </Form.Item>
         <Form.Item
-          label="Brand Logo"
+          label="Phone"
+          name="phone"
+          rules={[{ required: true, message: "Please input phone number!" }]}
+        >
+          <Input addonBefore="+92" suffix={<PhoneOutlined />} placeholder="340..." type="number" />
+        </Form.Item>
+        <Form.Item
+          label="Picture"
           valuePropName="fileList"
           name="file"
           rules={[
@@ -185,4 +197,4 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   );
 }
 
-export default AddBrand;
+export default AddRider;

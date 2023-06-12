@@ -16,7 +16,7 @@ import {
   updateLocation,
 } from "../store/slices/locationSlice";
 import { textElipsis } from "../utils/helpers";
-import LocationDetail from "../components/LocationDetail";
+import LocationDetail from "../components/location_detail/LocationDetail";
 
 function Location() {
   const [state, setState] = useState({
@@ -79,7 +79,7 @@ function Location() {
     setState((prev) => ({ ...prev, selected, isAddOpen: true }));
   };
 
-  const handleAdd = (isOpen) => setState((p) => ({ ...p, isAddOpen: isOpen }));
+  const handleAdd = (isOpen) => setState((p) => ({ ...p, isAddOpen: isOpen, selected: isOpen? p.selected:null, }));
 
   const handleUpsert = (action, data) => {
     if (action === "ADD_ACTION") {
@@ -173,7 +173,7 @@ function Location() {
           </List.Item>
         )}
       />
-      <LocationDetail isOpen={state.isDetailOpen} onClose={() => toggleDetail(false)} />
+      <LocationDetail isOpen={state.isDetailOpen} onClose={() => toggleDetail(false)} location={state.selected} />
     </div>
   );
 }

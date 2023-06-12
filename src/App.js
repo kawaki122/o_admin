@@ -8,6 +8,7 @@ import Location from "./screens/Location";
 import store from ".//store/store";
 import { Provider } from "react-redux";
 import Campaign from "./screens/Campaign";
+import Rider from "./screens/Rider";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
       {
         path: "/campaign",
         element: <Campaign />,
+      },
+      {
+        path: "/rider",
+        element: <Rider />,
       },
     ],
   },
