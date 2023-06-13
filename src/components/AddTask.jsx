@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Select } from "antd";
+import { Form, Modal, Button, Select } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";

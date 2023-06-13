@@ -10,7 +10,7 @@ function LocationDetail({ isOpen, onClose, location }) {
   return (
     <Modal open={isOpen} onCancel={onClose} footer={null}>
       <div>
-        <img src="map_lahore.png" style={{ width: "100%" }} />
+        <img src="map_lahore.png" alt="map" style={{ width: "100%" }} />
       </div>
       <div className="list-tile-container">
         <div className="tile-title">{location?.brand.name}</div>

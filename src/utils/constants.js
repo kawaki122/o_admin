@@ -42,11 +42,11 @@ export const locationAbouts = (location) => [
     },
     {
         Icon: <BorderBottomOutlined />,
-        text: location.width+ " "+"FT",
+        text: `${location.width} FT`,
     },
     {
         Icon: <BorderLeftOutlined />,
-        text: location.height+ " "+"FT",
+        text: `${location.height} FT`,
     },
 ]
 

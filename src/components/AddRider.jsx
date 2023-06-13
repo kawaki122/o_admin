@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload, InputNumber } from "antd";
+import { Form, Modal, Input, Button, Upload } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { PhoneOutlined, PlusOutlined } from "@ant-design/icons";
