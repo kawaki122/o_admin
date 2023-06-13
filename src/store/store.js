@@ -4,6 +4,7 @@ import brandSlice from "./slices/brandSlice";
 import campaignSlice from "./slices/campaignSlice";
 import locationSlice from "./slices/locationSlice";
 import riderSlice from "./slices/riderSlice";
+import taskSlice from "./slices/taskSlice";
 
 const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
     campaign: campaignSlice,
     location: locationSlice,
     rider: riderSlice,
+    task: taskSlice,
   },
 });
 

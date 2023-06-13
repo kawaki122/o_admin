@@ -14,6 +14,13 @@ import { db } from "../config/dbConfig";
 import { setCities } from "../store/slices/citySlice";
 import { setBrands } from "../store/slices/brandSlice";
 import { setCampaigns } from "../store/slices/campaignSlice";
+import { setLocations } from "../store/slices/locationSlice";
+import { setRiders } from "../store/slices/riderSlice";
+import { setTasks } from "../store/slices/taskSlice";
+import dayjs from "dayjs";
+const LocalizedFormat = require('dayjs/plugin/localizedFormat')
+
+dayjs.extend(LocalizedFormat)
 const { Header, Sider, Content } = Layout;
 
 function SideLayout() {
@@ -29,9 +36,50 @@ function SideLayout() {
       getDocs(collection(db, "cities")),
       getDocs(collection(db, "brands")),
       getDocs(collection(db, "campaigns")),
+      getDocs(collection(db, "locations")),
+      getDocs(collection(db, "riders")),
+      getDocs(collection(db, "tasks")),
     ])
       .then((response) => {
-        const [citySnapshot, brandSnapshot, campaignSnapshot] = response;
+        const [
+          citySnapshot,
+          brandSnapshot,
+          campaignSnapshot,
+          locationSnapshot,
+          riderSnapshot,
+          taskSnapshot,
+        ] = response;
+        const camps = campaignSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+          key: doc.id,
+        }))
+        const locs = locationSnapshot.docs.map((doc) => {
+          const camp = camps.find(
+            (item) => item.id === doc.data().campaign
+          );
+          return {
+          ...doc.data(),
+          id: doc.id,
+          key: doc.id,
+          brand: camp?.brand,
+        }})
+        const riders = riderSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+          key: doc.id,
+        }))
+        const tasks = taskSnapshot.docs.map((doc) => {
+          const data = doc.data()
+          const rider = riders.find(item => item.id === data.rider)
+          return {
+          ...data,
+          id: doc.id,
+          key: doc.id,
+          created: dayjs(data.created).format("MMMM D, YYYY"),
+          rider: rider ? rider : data.rider,
+        }
+      })
         dispatch(
           setCities(
             citySnapshot.docs.map((doc) => ({
@@ -52,11 +100,22 @@ function SideLayout() {
         );
         dispatch(
           setCampaigns(
-            campaignSnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
+            camps
+          )
+        );
+        dispatch(
+          setLocations(
+            locs
+          )
+        );
+        dispatch(
+          setRiders(
+            riders
+          )
+        );
+        dispatch(
+          setTasks(
+            tasks
           )
         );
       })
@@ -103,6 +162,11 @@ function SideLayout() {
               key: "6",
               icon: <VideoCameraOutlined />,
               label: <Link to={"/rider"}>Riders</Link>,
+            },
+            {
+              key: "7",
+              icon: <VideoCameraOutlined />,
+              label: <Link to={"/task"}>Task</Link>,
             },
           ]}
         />

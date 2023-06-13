@@ -3,9 +3,10 @@ import { locationTabs } from "../../utils/constants";
 import About from "./About";
 import Photos from "./Photos";
 import Reviews from "./Reviews";
+import RiderSection from "./RiderSection";
 
 function LocationDetail({ isOpen, onClose, location }) {
-  const screens = [<About location={location} />, <Photos location={location} />, <Reviews />]
+  const screens = [<About location={location} />, <Photos location={location} />, <Reviews />, <RiderSection location={location} />]
   return (
     <Modal open={isOpen} onCancel={onClose} footer={null}>
       <div>
@@ -26,7 +27,7 @@ function LocationDetail({ isOpen, onClose, location }) {
           return {
             label: (
               <span>
-                <item.Icon />
+                {item.Icon}
                 {item.text}
               </span>
             ),

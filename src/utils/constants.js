@@ -1,6 +1,6 @@
 import { PictureOutlined, CommentOutlined, InfoCircleOutlined, BorderBottomOutlined, BorderLeftOutlined } from "@ant-design/icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCity, faTrafficLight } from '@fortawesome/free-solid-svg-icons'
+import { faCity, faPersonBiking, faTrafficLight } from '@fortawesome/free-solid-svg-icons'
 
 export const routeKeys = {
     "/": "1",
@@ -9,20 +9,25 @@ export const routeKeys = {
     "/city": "4",
     "/brand": "5",
     "/rider": "6",
+    "/task": "7",
 }
 
 export const locationTabs = [
     {
-        Icon: InfoCircleOutlined,
+        Icon: <InfoCircleOutlined />,
         text: "About",
     },
     {
-        Icon: PictureOutlined,
+        Icon: <PictureOutlined />,
         text: "Photos",
     },
     {
-        Icon: CommentOutlined,
+        Icon: <CommentOutlined />,
         text: "Reviews",
+    },
+    {
+        Icon: <FontAwesomeIcon icon={faPersonBiking} color="gray" style={{marginRight:'10px'}} />,
+        text: "Rider",
     },
 ]
 
@@ -44,3 +49,7 @@ export const locationAbouts = (location) => [
         text: location.height+ " "+"FT",
     },
 ]
+
+export const taskStatus = {
+    "INIT": "Pending"
+}
