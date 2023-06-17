@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Avatar, Table, Tag } from "antd";
+import { Avatar, Table, Tag, message } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import AddCampaign from "../components/AddCampaign";
@@ -17,6 +17,7 @@ function Campaign() {
   });
   const { campaigns } = useSelector((state) => state.campaign);
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchCampaigns = useCallback(() => {
     getDocs(collection(db, "campaigns"))
@@ -88,6 +89,10 @@ function Campaign() {
       dispatch(
         setCampaigns(campaigns.filter((item) => !state.selectedRows.includes(item)))
       );
+      messageApi.open({
+        type: 'success',
+        content: "Deleted successfully",
+      });
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
@@ -95,11 +100,16 @@ function Campaign() {
       }));
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Error while deleting',
+      });
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <AddCampaign
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}

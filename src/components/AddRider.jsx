@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload } from "antd";
+import { Form, Modal, Input, Button, Upload, message } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { PhoneOutlined, PlusOutlined } from "@ant-design/icons";
@@ -9,6 +9,7 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -43,6 +44,7 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
     const [{ response }] = data.file;
     try {
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "riders", selectedEdit.id), {
           name: data.name,
@@ -55,6 +57,7 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
           phone: data.phone,
           picture: response,
         });
+        content = "City updated";
       } else {
         const ref = await addDoc(collection(db, "riders"), {
           name: data.name,
@@ -68,10 +71,19 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
           phone: data.phone,
           picture: response,
         });
+        content = "Rider added";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -108,6 +120,7 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
       footer={null}
       width={400}
     >
+      {contextHolder}
       <Form
         layout="vertical"
         form={form}

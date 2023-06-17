@@ -1,4 +1,4 @@
-import { Avatar, Button, Empty, Form, List, Select, Tag } from "antd";
+import { Avatar, Button, Empty, Form, List, Select, Tag, message } from "antd";
 import { addDoc, collection } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +17,7 @@ function RiderSection({ location }) {
   } = useSelector((state) => state);
   const [form] = Form.useForm();
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleSubmit = async (data) => {
     setLoading(true);
@@ -34,8 +35,16 @@ function RiderSection({ location }) {
       dispatch(addTask(obj));
       setLoading(false);
       setFormOpen(false)
+      messageApi.open({
+        type: 'success',
+        content: "Task assigned to rider",
+      });
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -68,6 +77,7 @@ function RiderSection({ location }) {
   if (!task && formOpen) {
     return (
       <div>
+        {contextHolder}
         <div className="small-heading">Assign a Rider</div>
         <Form
           layout="vertical"
@@ -98,6 +108,7 @@ function RiderSection({ location }) {
     );
   }
   return (
+    <>{contextHolder}
     <List
       itemLayout="horizontal"
       dataSource={[
@@ -127,6 +138,7 @@ function RiderSection({ location }) {
         </List.Item>
       )}
     />
+    </>
   );
 }
 

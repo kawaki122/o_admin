@@ -1,8 +1,11 @@
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
+  BarChartOutlined,
+  EnvironmentOutlined,
+  NotificationOutlined,
+  BarsOutlined,
+  TagsOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Outlet, useLocation, Link } from "react-router-dom";
@@ -18,6 +21,8 @@ import { setLocations } from "../store/slices/locationSlice";
 import { setRiders } from "../store/slices/riderSlice";
 import { setTasks } from "../store/slices/taskSlice";
 import dayjs from "dayjs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCity, faPersonBiking } from "@fortawesome/free-solid-svg-icons";
 const LocalizedFormat = require('dayjs/plugin/localizedFormat')
 
 dayjs.extend(LocalizedFormat)
@@ -135,38 +140,38 @@ function SideLayout() {
           items={[
             {
               key: "1",
-              icon: <UserOutlined />,
+              icon: <BarChartOutlined />,
               label: <Link to={"/"}>Dashboard</Link>,
             },
             {
               key: "2",
-              icon: <VideoCameraOutlined />,
+              icon: <EnvironmentOutlined />,
               label: <Link to={"/location"}>Locations</Link>,
             },
             {
               key: "3",
-              icon: <VideoCameraOutlined />,
+              icon: <NotificationOutlined />,
               label: <Link to={"/campaign"}>Campaigns</Link>,
             },
             {
               key: "4",
-              icon: <VideoCameraOutlined />,
-              label: <Link to={"/city"}>City</Link>,
+              icon: <FontAwesomeIcon icon={faCity} color="gray" />,
+              label: <Link to={"/city"}>Cities</Link>,
             },
             {
               key: "5",
-              icon: <VideoCameraOutlined />,
-              label: <Link to={"/brand"}>Brand</Link>,
+              icon: <TagsOutlined />,
+              label: <Link to={"/brand"}>Brands</Link>,
             },
             {
               key: "6",
-              icon: <VideoCameraOutlined />,
+              icon: <FontAwesomeIcon icon={faPersonBiking} color="gray" />,
               label: <Link to={"/rider"}>Riders</Link>,
             },
             {
               key: "7",
-              icon: <VideoCameraOutlined />,
-              label: <Link to={"/task"}>Task</Link>,
+              icon: <BarsOutlined />,
+              label: <Link to={"/task"}>Tasks</Link>,
             },
           ]}
         />

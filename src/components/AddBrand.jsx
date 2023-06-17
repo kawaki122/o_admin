@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload } from "antd";
+import { Form, Modal, Input, Button, Upload, message } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { PlusOutlined } from "@ant-design/icons";
@@ -9,6 +9,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -42,6 +43,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     const [{ response }] = data.file;
     try {
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "brands", selectedEdit.id), {
           name: data.name,
@@ -52,6 +54,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           name: data.name,
           logo: response,
         });
+        content = "Brand updated";
       } else {
         const ref = await addDoc(collection(db, "brands"), {
           name: data.name,
@@ -63,10 +66,19 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           name: data.name,
           logo: response,
         });
+        content = "Brand added";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -96,6 +108,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   };
 
   return (
+    <>{contextHolder}
     <Modal
       title={`${selectedEdit ? "Edit" : "Add"} Brand`}
       open={isOpen}
@@ -182,6 +195,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
         </Form.Item>
       </Form>
     </Modal>
+    </>
   );
 }
 

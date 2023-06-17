@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Table } from "antd";
+import { Table, message } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import AddCity from "../components/AddCity";
@@ -16,6 +16,7 @@ function City() {
   });
   const { cities } = useSelector((state) => state.city);
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchCities = useCallback(() => {
     getDocs(collection(db, "cities"))
@@ -89,6 +90,10 @@ function City() {
       dispatch(
         setCities(cities.filter((item) => !state.selectedRows.includes(item)))
       );
+      messageApi.open({
+        type: 'success',
+        content: "Deleted successfully",
+      });
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
@@ -96,11 +101,16 @@ function City() {
       }));
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Error while deleting',
+      });
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <AddCity
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}

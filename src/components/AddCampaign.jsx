@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Button, Select, DatePicker } from "antd";
+import { Form, Modal, Button, Select, DatePicker, message } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
@@ -9,6 +9,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const { brands } = useSelector((state) => state.brand);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -28,6 +29,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
     const brand = brands.find(b => b.id === data.brand);
     try {
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "campaigns", selectedEdit.id), {
           brand: brand,
@@ -42,6 +44,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
           to: to,
           status: data.status,
         });
+        content = "Campaign updated";
       } else {
         const ref = await addDoc(collection(db, "campaigns"), {
           brand: brand,
@@ -57,10 +60,19 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
           to: to,
           status: data.status,
         });
+        content = "Campaign added";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -73,6 +85,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
       footer={null}
       width={400}
     >
+      {contextHolder}
       <Form
         layout="vertical"
         form={form}

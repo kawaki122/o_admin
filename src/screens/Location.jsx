@@ -1,4 +1,4 @@
-import { List, Card, Avatar, Popconfirm } from "antd";
+import { List, Card, Avatar, Popconfirm, message } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
@@ -30,6 +30,7 @@ function Location() {
     location: { locations },
   } = useSelector((state) => state);
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchLocations = useCallback(() => {
     setState((prev) => ({
@@ -110,8 +111,16 @@ function Location() {
       dispatch(
         setLocations(locations.filter((item) => item.id !== selected.id))
       );
+      messageApi.open({
+        type: 'success',
+        content: "Deleted successfully",
+      });
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Error while deleting',
+      });
     }
   };
 
@@ -121,6 +130,7 @@ function Location() {
 
   return (
     <div>
+      {contextHolder}
       <AddLocation
         isOpen={state.isAddOpen}
         selectedEdit={state.selected}

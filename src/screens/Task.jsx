@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, Table, Tag } from "antd";
+import { Avatar, Table, Tag, message } from "antd";
 import TitleBar from "../components/TitleBar";
 import { doc, writeBatch } from "firebase/firestore";
 import { db } from "../config/dbConfig";
@@ -17,6 +17,7 @@ function Task() {
   });
   const { tasks } = useSelector((state) => state.task);
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleEdit = () => {
     const [row] = state.selectedRows;
@@ -66,6 +67,10 @@ function Task() {
       dispatch(
         setTasks(tasks.filter((item) => !state.selectedRows.includes(item)))
       );
+      messageApi.open({
+        type: 'success',
+        content: "Deleted successfully",
+      });
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
@@ -73,11 +78,16 @@ function Task() {
       }));
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Error while deleting',
+      });
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <AddTask
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}

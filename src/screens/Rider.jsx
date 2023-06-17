@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Table, Avatar } from "antd";
+import { Table, Avatar, message } from "antd";
 import TitleBar from "../components/TitleBar";
 import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import { db } from "../config/dbConfig";
@@ -16,6 +16,7 @@ function Rider() {
   });
   const { riders } = useSelector((state) => state.rider);
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchRiders = useCallback(() => {
     getDocs(collection(db, "riders"))
@@ -88,6 +89,10 @@ function Rider() {
       dispatch(
         setRiders(riders.filter((item) => !state.selectedRows.includes(item)))
       );
+      messageApi.open({
+        type: 'success',
+        content: "Deleted successfully",
+      });
       setState((prev) => ({
         ...prev,
         selectedEdit: null,
@@ -95,11 +100,16 @@ function Rider() {
       }));
     } catch (error) {
       console.log(error);
+      messageApi.open({
+        type: 'error',
+        content: 'Error while deleting',
+      });
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <AddRider
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}

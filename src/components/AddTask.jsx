@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Button, Select } from "antd";
+import { Form, Modal, Button, Select, message } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
@@ -13,6 +13,7 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
     campaign: { campaigns },
     location: { locations },
   } = useSelector((state) => state);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -30,6 +31,7 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
     try {
       const rider = riders.find((i) => i.id === data.rider);
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "tasks", selectedEdit.id), {
           ...data,
@@ -39,6 +41,7 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
           ...data,
           rider,
         });
+        content = "Task updated";
       } else {
         const ref = await addDoc(collection(db, "tasks"), {
           ...data,
@@ -53,10 +56,19 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
           created: dayjs().format("MMMM D, YYYY"),
           rider,
         });
+        content = "Task assigned";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -69,6 +81,7 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
       footer={null}
       width={400}
     >
+      {contextHolder}
       <Form
         layout="vertical"
         form={form}

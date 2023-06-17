@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Select, Space, Upload } from "antd";
+import { Form, Modal, Input, Button, Select, Space, Upload, message } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
@@ -15,6 +15,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const { city, campaign } = useSelector((state) => state);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
@@ -46,12 +47,14 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
     }
     try {
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "locations", selectedEdit.id), data);
         onFinish("UPDATE_ACTION", {
           ...selectedEdit,
           ...data,
         });
+        content = "Location updated";
       } else {
         const ref = await addDoc(collection(db, "locations"), data);
         const camp = campaign.campaigns.find(c => c.id === data.campaign)
@@ -61,10 +64,19 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
           ...data,
           brand: camp?.brand,
         });
+        content = "Location added";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -94,6 +106,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   };
 
   return (
+    <>{contextHolder}
     <Modal
       title={`${selectedEdit ? "Edit" : "Add"} Location`}
       open={isOpen}
@@ -240,6 +253,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
         </Form.Item>
       </Form>
     </Modal>
+    </>
   );
 }
 

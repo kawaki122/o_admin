@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button } from "antd";
+import { Form, Modal, Input, Button, message } from "antd";
 import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 
 function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     if(isOpen && selectedEdit) {
@@ -18,6 +19,7 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
   const handleOk = async (data) => {
     try {
       setLoading(true);
+      let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "cities", selectedEdit.id), {
           city: data.city,
@@ -26,6 +28,7 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
           ...selectedEdit,
           city: data.city,
         });
+        content = "City updated";
       } else {
         const ref = await addDoc(collection(db, "cities"), {
           city: data.city,
@@ -35,10 +38,19 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
           key: ref.id,
           city: data.city,
         });
+        content = "City added";
       }
+      messageApi.open({
+        type: 'success',
+        content,
+      });
       setLoading(false);
     } catch (e) {
       console.log(e);
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong',
+      });
       setLoading(false);
     }
   };
@@ -51,6 +63,7 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
       footer={null}
       width={400}
     >
+      {contextHolder}
       <Form
         layout="vertical"
         form={form}
