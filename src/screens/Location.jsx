@@ -28,6 +28,7 @@ function Location() {
   const {
     campaign: { campaigns },
     location: { locations },
+    task,
   } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
@@ -103,8 +104,24 @@ function Location() {
     }
   };
 
+  const validateLocations = (selected) => {
+    const temp = task.tasks.find(item => item.location === selected.id);
+    if(temp) {
+      return `This location have 1 or more active tasks`;
+    }
+    return null;
+  }
+
   const handleDelete = async (selected) => {
     try {
+      const message = validateLocations(selected);
+      if(message) {
+        messageApi.open({
+          type: 'error',
+          content: message,
+        });
+        return
+      }
       const batch = writeBatch(db);
       batch.delete(doc(db, "locations", selected.id));
       await batch.commit();

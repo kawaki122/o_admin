@@ -14,7 +14,7 @@ function City() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { cities } = useSelector((state) => state.city);
+  const { city:{ cities }, location:{ locations } } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -80,8 +80,30 @@ function City() {
     }
   };
 
+  const validateCities = () => {
+    const found = []
+    state.selectedRows.forEach((row) => {
+      const temp = locations.find(item => item.city === row.id);
+      if(temp) {
+        found.push(row.city)
+      }
+    });
+    if(found.length) {
+      return `${found.join(', ')} ${found.length>1?"are":"is"} being used in 1 or more locations`;
+    }
+    return null;
+  }
+
   const handleDelete = async () => {
     try {
+      const message = validateCities();
+      if(message) {
+        messageApi.open({
+          type: 'error',
+          content: message,
+        });
+        return
+      }
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
         batch.delete(doc(db, "cities", row.id));

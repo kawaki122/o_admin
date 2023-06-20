@@ -15,7 +15,7 @@ function Campaign() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { campaigns } = useSelector((state) => state.campaign);
+  const { campaign:{campaigns}, location } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -79,8 +79,30 @@ function Campaign() {
     }
   };
 
+  const validateCampaigns = () => {
+    const found = []
+    state.selectedRows.forEach((row) => {
+      const temp = location.locations.find(item => item.campaign === row.id);
+      if(temp) {
+        found.push(row.brand.name)
+      }
+    });
+    if(found.length) {
+      return `${found.join(', ')} have 1 or more active locations`;
+    }
+    return null;
+  }
+
   const handleDelete = async () => {
     try {
+      const message = validateCampaigns();
+      if(message) {
+        messageApi.open({
+          type: 'error',
+          content: message,
+        });
+        return
+      }
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
         batch.delete(doc(db, "campaigns", row.id));

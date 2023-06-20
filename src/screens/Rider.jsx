@@ -14,7 +14,7 @@ function Rider() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { riders } = useSelector((state) => state.rider);
+  const { rider:{riders}, task } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -79,8 +79,30 @@ function Rider() {
     }
   };
 
+  const validateRiders = () => {
+    const found = []
+    state.selectedRows.forEach((row) => {
+      const temp = task.tasks.find(item => item.rider.id === row.id);
+      if(temp) {
+        found.push(row.name)
+      }
+    });
+    if(found.length) {
+      return `${found.join(', ')} ${found.length>1?"are":"is"} assigned 1 or more tasks`;
+    }
+    return null;
+  }
+
   const handleDelete = async () => {
     try {
+      const message = validateRiders();
+      if(message) {
+        messageApi.open({
+          type: 'error',
+          content: message,
+        });
+        return
+      }
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
         batch.delete(doc(db, "riders", row.id));

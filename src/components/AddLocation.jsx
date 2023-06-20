@@ -149,7 +149,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
           >
             <Select placeholder="Select City">
               {city.cities.map((item) => (
-                <Select.Option value={item.city}>{item.city}</Select.Option>
+                <Select.Option value={item.id}>{item.city}</Select.Option>
               ))}
             </Select>
           </Form.Item>
