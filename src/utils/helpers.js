@@ -1,3 +1,5 @@
+import { getAuth, signOut } from "firebase/auth";
+import { redirect } from "react-router-dom";
 
 export const createTimeInterval = (f, t) => {
   let result = "";
@@ -32,8 +34,32 @@ export const createTimeInterval = (f, t) => {
 };
 
 export const textElipsis = (text, length) => {
-  if(text.length > length) {
+  if (text.length > length) {
     return text.substring(0, length) + "...";
   }
   return text;
+};
+
+export const authLoader = () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) {
+    return redirect("/login");
+  }
+  return user;
+};
+
+export const authPublicLoader = () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (user) {
+    return redirect("/");
+  }
+  return null;
+};
+
+export const handleLogout = () => {
+  return signOut(getAuth())
 }

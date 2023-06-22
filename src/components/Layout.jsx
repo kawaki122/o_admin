@@ -6,131 +6,48 @@ import {
   NotificationOutlined,
   BarsOutlined,
   TagsOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme } from "antd";
-import { Outlet, useLocation, Link } from "react-router-dom";
+import { Avatar, Button, Dropdown, Layout, Menu, Space, message, theme } from "antd";
+import { Outlet, useLocation, Link, useNavigate } from "react-router-dom";
 import { routeKeys } from "../utils/constants";
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../config/dbConfig";
-import { setCities } from "../store/slices/citySlice";
-import { setBrands } from "../store/slices/brandSlice";
-import { setCampaigns } from "../store/slices/campaignSlice";
-import { setLocations } from "../store/slices/locationSlice";
-import { setRiders } from "../store/slices/riderSlice";
-import { setTasks } from "../store/slices/taskSlice";
+import { useState } from "react";
 import dayjs from "dayjs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCity, faPersonBiking } from "@fortawesome/free-solid-svg-icons";
-const LocalizedFormat = require('dayjs/plugin/localizedFormat')
+import { handleLogout } from "../utils/helpers";
+const LocalizedFormat = require("dayjs/plugin/localizedFormat");
 
-dayjs.extend(LocalizedFormat)
+dayjs.extend(LocalizedFormat);
 const { Header, Sider, Content } = Layout;
 
 function SideLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
+  const navigate = useNavigate()
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
-  useEffect(() => {
-    Promise.all([
-      getDocs(collection(db, "cities")),
-      getDocs(collection(db, "brands")),
-      getDocs(collection(db, "campaigns")),
-      getDocs(collection(db, "locations")),
-      getDocs(collection(db, "riders")),
-      getDocs(collection(db, "tasks")),
-    ])
-      .then((response) => {
-        const [
-          citySnapshot,
-          brandSnapshot,
-          campaignSnapshot,
-          locationSnapshot,
-          riderSnapshot,
-          taskSnapshot,
-        ] = response;
-        const camps = campaignSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          key: doc.id,
-        }))
-        const locs = locationSnapshot.docs.map((doc) => {
-          const camp = camps.find(
-            (item) => item.id === doc.data().campaign
-          );
-          return {
-          ...doc.data(),
-          id: doc.id,
-          key: doc.id,
-          brand: camp?.brand,
-        }})
-        const riders = riderSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          key: doc.id,
-        }))
-        const tasks = taskSnapshot.docs.map((doc) => {
-          const data = doc.data()
-          const rider = riders.find(item => item.id === data.rider)
-          return {
-          ...data,
-          id: doc.id,
-          key: doc.id,
-          created: dayjs(data.created).format("MMMM D, YYYY"),
-          rider: rider ? rider : data.rider,
-        }
+  const handleDropSelect = (e) => {
+    if(Number(e.key) === 2) {
+      handleLogout().then(() => {
+        navigate("/login")
+      }).catch(() => {
+        messageApi.open({
+          type: 'error',
+          content: "Logout failed",
+        });
+        console.log("Error logong out")
       })
-        dispatch(
-          setCities(
-            citySnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
-        dispatch(
-          setBrands(
-            brandSnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
-        dispatch(
-          setCampaigns(
-            camps
-          )
-        );
-        dispatch(
-          setLocations(
-            locs
-          )
-        );
-        dispatch(
-          setRiders(
-            riders
-          )
-        );
-        dispatch(
-          setTasks(
-            tasks
-          )
-        );
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, [dispatch]);
+    }
+  }
 
   return (
     <Layout>
+      {contextHolder}
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="demo-logo-vertical">OMedia</div>
         <Menu
@@ -181,6 +98,8 @@ function SideLayout() {
           style={{
             padding: 0,
             background: colorBgContainer,
+            display: "flex",
+            justifyContent: "space-between",
           }}
         >
           <Button
@@ -193,6 +112,20 @@ function SideLayout() {
               height: 64,
             }}
           />
+          <Space style={{marginRight: '30px'}}>
+            <Dropdown
+              menu={{
+                items: [
+                  { key: "1", label: "My Profile" },
+                  { key: "2", label: "Logout", icon: <LogoutOutlined /> },
+                ],
+                onClick: handleDropSelect
+              }}
+              placement="bottomRight"
+            >
+              <Avatar size={30} icon={<UserOutlined />} />
+            </Dropdown>
+          </Space>
         </Header>
         <Content
           style={{

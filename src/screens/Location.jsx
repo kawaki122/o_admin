@@ -170,7 +170,7 @@ function Location() {
         loading={state.loading}
         dataSource={locations}
         renderItem={(item) => (
-          <List.Item>
+          <List.Item key={item.id}>
             <Card
               style={{ width: 300 }}
               cover={item.files.length?<img alt="example" src={item.files[0]} />:null}
