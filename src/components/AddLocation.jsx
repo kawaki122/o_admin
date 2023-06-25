@@ -63,6 +63,8 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
           key: ref.id,
           ...data,
           brand: camp?.brand,
+          long: 0,
+          lat: 0,
         });
         content = "Location added";
       }
