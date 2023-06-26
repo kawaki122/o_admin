@@ -65,6 +65,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
           brand: camp?.brand,
           long: 0,
           lat: 0,
+          rating: 3,
         });
         content = "Location added";
       }
