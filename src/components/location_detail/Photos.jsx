@@ -7,7 +7,7 @@ function Photos({ location }) {
       {location.files.map((file) =>
         file.type === "video" ? (
           <div className="thumbnail-container" style={{width: '200px'}}>
-            <img src={file.thumb} style={{ padding: "5px" }} />
+            <img src={file.thumb} alt="thumb" style={{ padding: "5px" }} />
             <div className="thumbnail-overlay" style={{margin: '5px'}}>
               <CaretRightOutlined style={{ fontSize: "46px", color: "#fff" }} />
             </div>
