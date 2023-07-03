@@ -63,3 +63,7 @@ export const authPublicLoader = () => {
 export const handleLogout = () => {
   return signOut(getAuth())
 }
+
+export async function asyncMap(array, callback) {
+  return await Promise.all(array.map(async item => await callback(item)));
+}

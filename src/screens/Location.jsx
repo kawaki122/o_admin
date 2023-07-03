@@ -5,6 +5,7 @@ import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import { db } from "../config/dbConfig";
 import AddLocation from "../components/AddLocation";
 import {
+  CaretRightOutlined,
   DeleteOutlined,
   EditOutlined,
   FullscreenOutlined,
@@ -145,6 +146,23 @@ function Location() {
     setState(prev => ({...prev, isDetailOpen: open, selected: open ? data : null }))
   }
 
+  const renderCover = (item) => {
+    if(item.files.length) {
+      const [file] = item.files;
+      if(file.type === 'video') {
+        return <div className="thumbnail-container card-cover-size">
+          <img alt="example" src={file.thumb} />
+          <div className="thumbnail-overlay overlay-radius">
+            <CaretRightOutlined style={{fontSize: '46px', color: '#fff'}} />
+          </div>
+        </div>
+      }
+      return <img alt="example" src={file.thumb} />
+    } else {
+      return null;
+    }
+  }
+
   return (
     <div>
       {contextHolder}
@@ -173,7 +191,7 @@ function Location() {
           <List.Item key={item.id}>
             <Card
               style={{ width: 300 }}
-              cover={item.files.length?<img alt="example" src={item.files[0]} />:null}
+              cover={renderCover(item)}
               actions={[
                 <Popconfirm
                   title="Delete this Data"

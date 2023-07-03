@@ -9,7 +9,9 @@ import {
   EnvironmentOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable, uploadString } from "firebase/storage";
+import { generateVideoThumbnails } from "@rajesh896/video-thumbnails-generator";
+import { asyncMap } from "../utils/helpers";
 
 function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
@@ -26,12 +28,14 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
         width: selectedEdit?.width,
         height: selectedEdit?.height,
         trafic_flow: selectedEdit?.trafic_flow,
-        files: selectedEdit?.files.map((url) => ({
-          uid: url,
-          name: "image.png",
+        files: selectedEdit?.files.map((file) => ({
+          uid: file.file,
+          name: file.type,
           status: "done",
-          url: url,
-          response: url,
+          url: file.file,
+          response: file.file,
+          type: file.type+"/file",
+          thumb: file.thumb,
         })),
       });
     } else {
@@ -39,14 +43,36 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
     }
   }, [isOpen, selectedEdit, form]);
 
-  const handleOk = async (data) => {
-    if (data.files) {
-      data.files = data.files.map((file) => file.response);
+  const processFiles = async (files) => {
+    if (files) {
+      return await asyncMap(files, async (file) => {
+        let thumb = null;
+        let type;
+        if(file.type.split('/')[0] === 'video') {
+          if(file.originFileObj) {
+          const base64Data = await generateVideoThumbnails(file.originFileObj, 1)
+          const storageRef = ref(storage, `/files/${file.name}-thumbnail`);
+          await uploadString(storageRef, base64Data[0].replace("data:image/jpeg;base64,",""), 'base64')
+          thumb = await getDownloadURL(storageRef)
+          } else {
+            thumb = file.thumb;
+          }
+          type = 'video';
+        } else {
+          thumb = file.response;
+          type = 'image';
+        }
+        return { file: file.response, thumb, type };
+      });
     } else {
-      data.files = [];
+      return [];
     }
+  }
+
+  const handleOk = async (data) => {
     try {
       setLoading(true);
+      data.files = await processFiles(data.files);
       let content = null;
       if (selectedEdit) {
         await updateDoc(doc(db, "locations", selectedEdit.id), data);
