@@ -51,5 +51,6 @@ export const locationAbouts = (location) => [
 ]
 
 export const taskStatus = {
-    "INIT": "Pending"
+    "INIT": "Assigned",
+    "PENDING": "Submitted"
 }

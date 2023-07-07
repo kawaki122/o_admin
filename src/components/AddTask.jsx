@@ -30,6 +30,7 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
   const handleOk = async (data) => {
     try {
       const rider = riders.find((i) => i.id === data.rider);
+      const location = locations.find((i) => i.id === data.location);
       setLoading(true);
       let content = null;
       if (selectedEdit) {
@@ -46,6 +47,8 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
         const ref = await addDoc(collection(db, "tasks"), {
           ...data,
           status: "INIT",
+          long: location.long,
+          lat: location.lat,
           created: dayjs().format("YYYY-MM-DD"),
         });
         onFinish("ADD_ACTION", {
@@ -53,6 +56,8 @@ function AddTask({ selectedEdit, isOpen, onClose, onFinish }) {
           key: ref.id,
           ...data,
           status: "INIT",
+          long: location.long,
+          lat: location.lat,
           created: dayjs().format("MMMM D, YYYY"),
           rider,
         });

@@ -27,6 +27,8 @@ function RiderSection({ location }) {
         campaign: location.campaign,
         rider: data.rider,
         status: "INIT",
+        long: location.long,
+        lat: location.lat,
         created: dayjs().format("YYYY-MM-DD"),
       };
       const ref = await addDoc(collection(db, "tasks"), obj);
