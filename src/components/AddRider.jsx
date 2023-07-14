@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload, message } from "antd";
+import { Form, Modal, Input, Button, Upload, message, Space } from "antd";
 import { db, storage } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
-import { PhoneOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [filesList, setFilesList] = useState([]);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [uid, setUid] = useState(null);
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -34,9 +37,11 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
           url: selectedEdit.picture,
         },
       ]);
+      setUid(selectedEdit.uid);
     } else {
       form.resetFields();
       setFilesList([]);
+      setUid(null);
     }
   }, [isOpen, selectedEdit, form]);
 
@@ -74,19 +79,39 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
         content = "Rider added";
       }
       messageApi.open({
-        type: 'success',
+        type: "success",
         content,
       });
       setLoading(false);
     } catch (e) {
       console.log(e);
       messageApi.open({
-        type: 'error',
-        content: 'Something went wrong',
+        type: "error",
+        content: "Something went wrong",
       });
       setLoading(false);
     }
   };
+
+  const sendCode = () => {
+    setLoading(true);
+    debugger
+    const auth = getAuth();
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'sign-in-button', {
+      'size': 'invisible',
+    });
+    const appVerifier = window.recaptchaVerifier;
+    signInWithPhoneNumber(auth, '+923404233509', appVerifier)
+    .then((confirmationResult) => {
+      // SMS sent. Prompt user to type the code from the message, then sign the
+      // user in with confirmationResult.confirm(code).
+      window.confirmationResult = confirmationResult;
+      // ...
+    }).catch((error) => {
+      // Error; SMS not sent
+      // ...
+    });
+  }
 
   const customRequest = ({ file, onSuccess, onError, onProgress }) => {
     const storageRef = ref(storage, `/files/${file.name}`);
@@ -137,9 +162,31 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
         <Form.Item
           label="Phone"
           name="phone"
-          rules={[{ required: true, message: "Please input phone number!" }]}
+          rules={[
+            { required: true, message: "Please input phone number!" },
+            {
+              message: "Please varify phone number",
+              validator: (_, value) => {
+                if (
+                  !value || uid
+                ) {
+                  return Promise.resolve();
+                } else {
+                  return Promise.reject("Please varify phone number");
+                }
+              },
+            },
+          ]}
         >
-          <Input addonBefore="+92" suffix={<PhoneOutlined />} placeholder="340..." type="number" />
+          <Space.Compact style={{ width: "100%" }}>
+            <Input
+              addonBefore="+92"
+              // suffix={<PhoneOutlined />}
+              placeholder="340..."
+              type="number"
+            />
+            <Button onClick={sendCode} loading={sendingCode}>Verify</Button>
+          </Space.Compact>
         </Form.Item>
         <Form.Item
           label="Picture"
@@ -151,7 +198,8 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
               message: "Please try uploading again",
               validator: (_, value) => {
                 if (
-                  !value || !value[0]||
+                  !value ||
+                  !value[0] ||
                   value[0]?.response ||
                   value[0]?.status === "uploading"
                 ) {
