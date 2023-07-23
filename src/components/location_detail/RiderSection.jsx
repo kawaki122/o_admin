@@ -36,16 +36,16 @@ function RiderSection({ location }) {
       obj.key = ref.id;
       dispatch(addTask(obj));
       setLoading(false);
-      setFormOpen(false)
+      setFormOpen(false);
       messageApi.open({
-        type: 'success',
+        type: "success",
         content: "Task assigned to rider",
       });
     } catch (error) {
       console.log(error);
       messageApi.open({
-        type: 'error',
-        content: 'Something went wrong',
+        type: "error",
+        content: "Something went wrong",
       });
       setLoading(false);
     }
@@ -56,12 +56,16 @@ function RiderSection({ location }) {
       (item) => item.location === location.id && item.status === "INIT"
     );
     if (tsk) {
-      const rider = riders.find((item) => item.id === tsk.rider);
-      if (rider) {
-        return {
-          ...tsk,
-          rider,
-        };
+      if (typeof tsk.rider === "string") {
+        const rider = riders.find((item) => item.id === tsk.rider);
+        if (rider) {
+          return {
+            ...tsk,
+            rider,
+          };
+        }
+      } else {
+        return tsk;
       }
     }
     return null;
@@ -110,36 +114,39 @@ function RiderSection({ location }) {
     );
   }
   return (
-    <>{contextHolder}
-    <List
-      itemLayout="horizontal"
-      dataSource={[
-        {
-          Icon: <Avatar src={<img src={task.rider.picture} alt="avatar" />} />,
-          text: task.rider.name,
-          title: 'Rider',
-        },
-        {
-          Icon: <CalendarOutlined />,
-          text: task.created,
-          title: 'Assigned At',
-        },
-        {
-          Icon: <Loading3QuartersOutlined />,
-          text: <Tag>{taskStatus[task.status]}</Tag>,
-          title: 'Status',
-        },
-      ]}
-      renderItem={(item, index) => (
-        <List.Item>
-          <List.Item.Meta
-            avatar={item.Icon}
-            title={item.title}
-            description={item.text}
-          />
-        </List.Item>
-      )}
-    />
+    <>
+      {contextHolder}
+      <List
+        itemLayout="horizontal"
+        dataSource={[
+          {
+            Icon: (
+              <Avatar src={<img src={task.rider.picture} alt="avatar" />} />
+            ),
+            text: task.rider.name,
+            title: "Rider",
+          },
+          {
+            Icon: <CalendarOutlined />,
+            text: task.created,
+            title: "Assigned At",
+          },
+          {
+            Icon: <Loading3QuartersOutlined />,
+            text: <Tag>{taskStatus[task.status]}</Tag>,
+            title: "Status",
+          },
+        ]}
+        renderItem={(item, index) => (
+          <List.Item>
+            <List.Item.Meta
+              avatar={item.Icon}
+              title={item.title}
+              description={item.text}
+            />
+          </List.Item>
+        )}
+      />
     </>
   );
 }
