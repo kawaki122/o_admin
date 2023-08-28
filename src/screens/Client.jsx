@@ -5,9 +5,9 @@ import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import { db } from "../config/dbConfig";
 import AddBrand from "../components/AddBrand";
 import { useDispatch, useSelector } from "react-redux";
-import { addBrand, setBrands, updateBrand } from "../store/slices/brandSlice";
+import { addClient, setClients, updateClient } from "../store/slices/brandSlice";
 
-function Brand() {
+function Client() {
   const [state, setState] = useState({
     isAddOpen: false,
     loading: false,
@@ -18,12 +18,12 @@ function Brand() {
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const fetchBrands = useCallback(() => {
-    getDocs(collection(db, "brands"))
+  const fetchClients = useCallback(() => {
+    getDocs(collection(db, "clients"))
       .then((querySnapshot) => {
         if (querySnapshot.docs.length) {
           dispatch(
-            setBrands(
+            setClients(
               querySnapshot.docs.map((doc) => ({
                 ...doc.data(),
                 id: doc.id,
@@ -39,8 +39,8 @@ function Brand() {
   }, [dispatch]);
 
   useEffect(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+    fetchClients();
+  }, [fetchClients]);
 
   const handleEdit = () => {
     const [row] = state.selectedRows;
@@ -59,7 +59,7 @@ function Brand() {
 
   const handleUpsert = (action, data) => {
     if (action === "ADD_ACTION") {
-      dispatch(addBrand(data));
+      dispatch(addClient(data));
       setState((prev) => {
         const newState = { ...prev };
         newState.selectedEdit = null;
@@ -67,7 +67,7 @@ function Brand() {
         return newState;
       });
     } else {
-      dispatch(updateBrand(data));
+      dispatch(updateClient(data));
       setState((prev) => {
         return {
           ...prev,
@@ -79,7 +79,7 @@ function Brand() {
     }
   };
 
-  const validateBrands = () => {
+  const validateClients = () => {
     const found = []
     state.selectedRows.forEach((row) => {
       const temp = campaign.campaigns.find(item => item.brand.id === row.id);
@@ -95,7 +95,7 @@ function Brand() {
 
   const handleDelete = async () => {
     try {
-      const message = validateBrands();
+      const message = validateClients();
       if(message) {
         messageApi.open({
           type: 'error',
@@ -105,11 +105,11 @@ function Brand() {
       }
       const batch = writeBatch(db);
       state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "brands", row.id));
+        batch.delete(doc(db, "clients", row.id));
       });
       await batch.commit();
       dispatch(
-        setBrands(brands.filter((item) => !state.selectedRows.includes(item)))
+        setClients(brands.filter((item) => !state.selectedRows.includes(item)))
       );
       messageApi.open({
         type: 'success',
@@ -130,7 +130,7 @@ function Brand() {
   };
 
   return (
-    <div className="brand-wrapper">
+    <div className="client-wrapper">
       {contextHolder}
       <AddBrand
         isOpen={state.isAddOpen}
@@ -165,7 +165,7 @@ function Brand() {
         ]}
         title={() => (
           <TitleBar
-            title="Brands"
+            title="Clients"
             onEdit={handleEdit}
             onAdd={() => handleAdd(true)}
             onDelete={handleDelete}
@@ -177,4 +177,4 @@ function Brand() {
   );
 }
 
-export default Brand;
+export default Client;

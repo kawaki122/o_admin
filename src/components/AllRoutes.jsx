@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import City from "../screens/City";
 import Dashboard from "../screens/Dashboard";
 import SideLayout from "../components/Layout";
-import Brand from "../screens/Brand";
+import ClientBrand from "../screens/ClientBrand";
 import Location from "../screens/Location";
 import Campaign from "../screens/Campaign";
 import Rider from "../screens/Rider";
@@ -27,9 +27,9 @@ function AllRoutes() {
           element: <City />,
         },
         {
-          path: "/brand",
+          path: "/client&brand",
           loader: authLoader,
-          element: <Brand />,
+          element: <ClientBrand />,
         },
         {
           path: "/location",

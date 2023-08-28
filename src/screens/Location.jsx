@@ -151,13 +151,13 @@ function Location() {
       const [file] = item.files;
       if(file.type === 'video') {
         return <div className="thumbnail-container card-cover-size">
-          <img alt="example" src={file.thumb} />
+          <img alt="Oops" src={file.thumb} />
           <div className="thumbnail-overlay overlay-radius">
             <CaretRightOutlined style={{fontSize: '46px', color: '#fff'}} />
           </div>
         </div>
       }
-      return <img alt="example" src={file.thumb} />
+      return <img alt="Oops" className="card-cover-size" src={file.thumb} />
     } else {
       return null;
     }

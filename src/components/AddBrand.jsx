@@ -15,24 +15,29 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     if (isOpen && selectedEdit) {
       form.setFieldsValue({
         name: selectedEdit?.name,
-        file: [
+        file:
+          selectedEdit.logo !== ""
+            ? [
+                {
+                  uid: selectedEdit.id,
+                  name: "image.png",
+                  status: "done",
+                  url: selectedEdit.logo,
+                  response: selectedEdit.logo,
+                },
+              ]
+            : undefined,
+      });
+      if (selectedEdit.logo !== "") {
+        setFilesList([
           {
             uid: selectedEdit.id,
             name: "image.png",
             status: "done",
             url: selectedEdit.logo,
-            response: selectedEdit.logo,
           },
-        ],
-      });
-      setFilesList([
-        {
-          uid: selectedEdit.id,
-          name: "image.png",
-          status: "done",
-          url: selectedEdit.logo,
-        },
-      ]);
+        ]);
+      }
     } else {
       form.resetFields();
       setFilesList([]);
@@ -40,7 +45,12 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
-    const [{ response }] = data.file;
+    let response;
+    if (data.file) {
+      response = data.file[0].response;
+    } else {
+      response = "";
+    }
     try {
       setLoading(true);
       let content = null;
@@ -69,15 +79,15 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
         content = "Brand added";
       }
       messageApi.open({
-        type: 'success',
+        type: "success",
         content,
       });
       setLoading(false);
     } catch (e) {
       console.log(e);
       messageApi.open({
-        type: 'error',
-        content: 'Something went wrong',
+        type: "error",
+        content: "Something went wrong",
       });
       setLoading(false);
     }
@@ -108,93 +118,95 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   };
 
   return (
-    <>{contextHolder}
-    <Modal
-      title={`${selectedEdit ? "Edit" : "Add"} Brand`}
-      open={isOpen}
-      onCancel={onClose}
-      footer={null}
-      width={400}
-    >
-      <Form
-        layout="vertical"
-        form={form}
-        onFinish={handleOk}
-        requiredMark={false}
+    <>
+      {contextHolder}
+      <Modal
+        title={`${selectedEdit ? "Edit" : "Add"} Brand`}
+        open={isOpen}
+        onCancel={onClose}
+        footer={null}
+        width={400}
       >
-        <Form.Item
-          label="Brand Name"
-          name="name"
-          rules={[{ required: true, message: "Please input brand name!" }]}
+        <Form
+          layout="vertical"
+          form={form}
+          onFinish={handleOk}
+          requiredMark={false}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Brand Logo"
-          valuePropName="fileList"
-          name="file"
-          rules={[
-            { required: true, message: "Please select a Picture!" },
-            {
-              message: "Please try uploading again",
-              validator: (_, value) => {
-                if (
-                  !value || !value[0]||
-                  value[0]?.response ||
-                  value[0]?.status === "uploading"
-                ) {
-                  return Promise.resolve();
-                } else {
-                  return Promise.reject("Error while uploading");
-                }
-              },
-            },
-            {
-              message: "Upload in progress...",
-              validator: (_, value) => {
-                if (value && value[0]?.status === "uploading") {
-                  return Promise.reject("Upload in progress...");
-                } else {
-                  return Promise.resolve();
-                }
-              },
-            },
-          ]}
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e && e.fileList;
-          }}
-        >
-          <Upload
-            action="/upload"
-            listType="picture-card"
-            onChange={(e) => setFilesList(e.fileList)}
-            customRequest={customRequest}
-            fileList={filesList}
+          <Form.Item
+            label="Brand Name"
+            name="name"
+            rules={[{ required: true, message: "Please input brand name!" }]}
           >
-            {filesList.length === 0 && (
-              <div>
-                <PlusOutlined />
-                <div
-                  style={{
-                    marginTop: 8,
-                  }}
-                >
-                  Upload
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Brand Logo (Optional)"
+            valuePropName="fileList"
+            name="file"
+            rules={[
+              {
+                message: "Please try uploading again",
+                validator: (_, value) => {
+                  if (
+                    !value ||
+                    !value[0] ||
+                    value[0]?.response ||
+                    value[0]?.status === "uploading"
+                  ) {
+                    return Promise.resolve();
+                  } else {
+                    return Promise.reject("Error while uploading");
+                  }
+                },
+              },
+              {
+                message: "Upload in progress...",
+                validator: (_, value) => {
+                  if (value && value[0]?.status === "uploading") {
+                    return Promise.reject("Upload in progress...");
+                  } else {
+                    return Promise.resolve();
+                  }
+                },
+              },
+            ]}
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e && e.fileList;
+            }}
+          >
+            <Upload
+              action="/upload"
+              listType="picture-card"
+              onChange={(e) => setFilesList(e.fileList)}
+              customRequest={customRequest}
+              fileList={filesList}
+              accept="image/*"
+            >
+              {filesList.length === 0 && (
+                <div>
+                  <PlusOutlined />
+                  <div
+                    style={{
+                      marginTop: 8,
+                    }}
+                  >
+                    Upload
+                  </div>
                 </div>
-              </div>
-            )}
-          </Upload>
-        </Form.Item>
-        <Form.Item className="form-actions">
-          <Button type="primary" loading={loading} htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
-      </Form>
-    </Modal>
+              )}
+            </Upload>
+          </Form.Item>
+          <Form.Item className="form-actions">
+            <Button type="primary" loading={loading} htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 }

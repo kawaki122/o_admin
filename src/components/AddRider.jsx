@@ -16,24 +16,29 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
       form.setFieldsValue({
         name: selectedEdit?.name,
         phone: selectedEdit?.phone,
-        file: [
+        file:
+          selectedEdit.picture !== ""
+            ? [
+                {
+                  uid: selectedEdit.id,
+                  name: "image.png",
+                  status: "done",
+                  url: selectedEdit.picture,
+                  response: selectedEdit.picture,
+                },
+              ]
+            : undefined,
+      });
+      if (selectedEdit.picture !== "") {
+        setFilesList([
           {
             uid: selectedEdit.id,
             name: "image.png",
             status: "done",
             url: selectedEdit.picture,
-            response: selectedEdit.picture,
           },
-        ],
-      });
-      setFilesList([
-        {
-          uid: selectedEdit.id,
-          name: "image.png",
-          status: "done",
-          url: selectedEdit.picture,
-        },
-      ]);
+        ]);
+      }
     } else {
       form.resetFields();
       setFilesList([]);
@@ -41,7 +46,12 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
   }, [isOpen, selectedEdit, form]);
 
   const handleOk = async (data) => {
-    const [{ response }] = data.file;
+    let response;
+    if (data.file) {
+      response = data.file[0].response;
+    } else {
+      response = "";
+    }
     try {
       setLoading(true);
       let content = null;
@@ -74,15 +84,15 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
         content = "Rider added";
       }
       messageApi.open({
-        type: 'success',
+        type: "success",
         content,
       });
       setLoading(false);
     } catch (e) {
       console.log(e);
       messageApi.open({
-        type: 'error',
-        content: 'Something went wrong',
+        type: "error",
+        content: "Something went wrong",
       });
       setLoading(false);
     }
@@ -139,19 +149,24 @@ function AddRider({ selectedEdit, isOpen, onClose, onFinish }) {
           name="phone"
           rules={[{ required: true, message: "Please input phone number!" }]}
         >
-          <Input addonBefore="+92" suffix={<PhoneOutlined />} placeholder="340..." type="number" />
+          <Input
+            addonBefore="+92"
+            suffix={<PhoneOutlined />}
+            placeholder="340..."
+            type="number"
+          />
         </Form.Item>
         <Form.Item
-          label="Picture"
+          label="Picture (Optional)"
           valuePropName="fileList"
           name="file"
           rules={[
-            { required: true, message: "Please select a Picture!" },
             {
               message: "Please try uploading again",
               validator: (_, value) => {
                 if (
-                  !value || !value[0]||
+                  !value ||
+                  !value[0] ||
                   value[0]?.response ||
                   value[0]?.status === "uploading"
                 ) {

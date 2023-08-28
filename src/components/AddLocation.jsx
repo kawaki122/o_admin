@@ -293,6 +293,7 @@ function AddLocation({ selectedEdit, isOpen, onClose, onFinish }) {
               action="/upload"
               listType="picture-card"
               customRequest={customRequest}
+              accept="image/*,video/*"
             >
               <div>
                 <PlusOutlined />

@@ -78,7 +78,7 @@ function SideLayout() {
             {
               key: "5",
               icon: <TagsOutlined />,
-              label: <Link to={"/brand"}>Brands</Link>,
+              label: <Link to={"/client&brand"}>Clients & Brands</Link>,
             },
             {
               key: "6",
