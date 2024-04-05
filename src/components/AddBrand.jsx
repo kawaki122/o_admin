@@ -68,6 +68,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           ...selectedEdit,
           name: data.name,
           logo: response,
+          clientId: data.clientId,
         });
         content = "Brand updated";
       } else {

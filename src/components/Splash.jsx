@@ -1,13 +1,5 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../config/dbConfig";
-import { setCities } from "../store/slices/citySlice";
-import { setBrands } from "../store/slices/brandSlice";
-import { setCampaigns } from "../store/slices/campaignSlice";
-import { setLocations } from "../store/slices/locationSlice";
-import { setRiders } from "../store/slices/riderSlice";
-import { setTasks } from "../store/slices/taskSlice";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import dayjs from "dayjs";
 import { Spin } from "antd";

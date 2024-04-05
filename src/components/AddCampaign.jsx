@@ -4,6 +4,7 @@ import { db } from "../config/dbConfig";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
+import { postRequest, putRequest } from "../services/apiServices";
 
 function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
@@ -14,7 +15,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
   useEffect(() => {
     if (isOpen && selectedEdit) {
       form.setFieldsValue({
-        brand: selectedEdit?.brand.id,
+        brandId: selectedEdit?.brand.id,
         duration: [dayjs(selectedEdit?.from),dayjs(selectedEdit?.to)],
         status: selectedEdit?.status,
       });
@@ -26,13 +27,14 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
   const handleOk = async (data) => {
     data.duration = data.duration.map(date => date.format('YYYY-MM-DD'));
     const [from, to] = data.duration;
-    const brand = brands.find(b => b.id === data.brand);
+    const brand = brands.find(b => b.id === data.brandId);
     try {
       setLoading(true);
       let content = null;
       if (selectedEdit) {
-        await updateDoc(doc(db, "campaigns", selectedEdit.id), {
-          brand: brand,
+        await putRequest("campaigns", {
+          id: selectedEdit.id,
+          brandId: data.brandId,
           from: from,
           to: to,
           status: data.status,
@@ -40,25 +42,24 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
         onFinish("UPDATE_ACTION", {
           ...selectedEdit,
           brand: brand,
+          brandId: data.brandId,
           from: from,
           to: to,
           status: data.status,
         });
         content = "Campaign updated";
       } else {
-        const ref = await addDoc(collection(db, "campaigns"), {
-          brand: brand,
+        const res = await postRequest("campaigns", {
+          brandId: data.brandId,
           from: from,
           to: to,
           status: data.status,
         });
+        
         onFinish("ADD_ACTION", {
-          id: ref.id,
-          key: ref.id,
+          ...res.data,
+          key: res.data.id,
           brand: brand,
-          from: from,
-          to: to,
-          status: data.status,
         });
         content = "Campaign added";
       }
@@ -94,7 +95,7 @@ function AddCampaign({ selectedEdit, isOpen, onClose, onFinish }) {
       >
         <Form.Item
           label="Brand"
-          name="brand"
+          name="brandId"
           rules={[{ required: true, message: "Please select a brand!" }]}
         >
           <Select placeholder="Select Brand">

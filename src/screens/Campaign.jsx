@@ -5,8 +5,13 @@ import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import AddCampaign from "../components/AddCampaign";
 import { db } from "../config/dbConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { addCampaign, setCampaigns, updateCampaign } from "../store/slices/campaignSlice";
+import {
+  addCampaign,
+  setCampaigns,
+  updateCampaign,
+} from "../store/slices/campaignSlice";
 import { createTimeInterval } from "../utils/helpers";
+import { getRequest, postRequest } from "../services/apiServices";
 
 function Campaign() {
   const [state, setState] = useState({
@@ -15,18 +20,20 @@ function Campaign() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { campaign:{campaigns}, location } = useSelector((state) => state);
+  const {
+    campaign: { campaigns },
+    location,
+  } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
   const fetchCampaigns = useCallback(() => {
-    getDocs(collection(db, "campaigns"))
-      .then((querySnapshot) => {
+    getRequest("campaigns")
+      .then((response) => {
         dispatch(
           setCampaigns(
-            querySnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
+            response.data.map((doc) => ({
+              ...doc,
               key: doc.id,
             }))
           )
@@ -38,7 +45,7 @@ function Campaign() {
   }, [dispatch]);
 
   useEffect(() => {
-      fetchCampaigns();
+    fetchCampaigns();
   }, [fetchCampaigns]);
 
   const handleEdit = () => {
@@ -79,40 +86,38 @@ function Campaign() {
     }
   };
 
-  const validateCampaigns = () => {
-    const found = []
-    state.selectedRows.forEach((row) => {
-      const temp = location.locations.find(item => item.campaign === row.id);
-      if(temp) {
-        found.push(row.brand.name)
-      }
-    });
-    if(found.length) {
-      return `${found.join(', ')} have 1 or more active locations`;
-    }
-    return null;
-  }
+  // const validateCampaigns = () => {
+  //   const found = [];
+  //   state.selectedRows.forEach((row) => {
+  //     const temp = location.locations.find((item) => item.campaign === row.id);
+  //     if (temp) {
+  //       found.push(row.brand.name);
+  //     }
+  //   });
+  //   if (found.length) {
+  //     return `${found.join(", ")} have 1 or more active locations`;
+  //   }
+  //   return null;
+  // };
 
   const handleDelete = async () => {
     try {
-      const message = validateCampaigns();
-      if(message) {
-        messageApi.open({
-          type: 'error',
-          content: message,
-        });
-        return
-      }
-      const batch = writeBatch(db);
-      state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "campaigns", row.id));
-      });
-      await batch.commit();
+      // const message = validateCampaigns();
+      // if (message) {
+      //   messageApi.open({
+      //     type: "error",
+      //     content: message,
+      //   });
+      //   return;
+      // }
+      await postRequest('campaigns/delete', {ids: state.selectedRows.map(item => item.id)});
       dispatch(
-        setCampaigns(campaigns.filter((item) => !state.selectedRows.includes(item)))
+        setCampaigns(
+          campaigns.filter((item) => !state.selectedRows.includes(item))
+        )
       );
       messageApi.open({
-        type: 'success',
+        type: "success",
         content: "Deleted successfully",
       });
       setState((prev) => ({
@@ -123,8 +128,8 @@ function Campaign() {
     } catch (error) {
       console.log(error);
       messageApi.open({
-        type: 'error',
-        content: 'Error while deleting',
+        type: "error",
+        content: "Error while deleting",
       });
     }
   };
@@ -166,9 +171,7 @@ function Campaign() {
             dataIndex: "duration",
             key: "duration",
             render: (_, data) => (
-              <div>
-                {createTimeInterval(data.from, data.to)}
-              </div>
+              <div>{createTimeInterval(data.from, data.to)}</div>
             ),
           },
           {
@@ -176,7 +179,9 @@ function Campaign() {
             dataIndex: "status",
             key: "status",
             render: (_, data) => (
-              <Tag color={data.status==='active'?'green':'default'}>{data.status.toUpperCase()}</Tag>
+              <Tag color={data.status === "active" ? "green" : "default"}>
+                {data.status.toUpperCase()}
+              </Tag>
             ),
           },
         ]}
