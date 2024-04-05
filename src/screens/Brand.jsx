@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Table, Avatar, message } from "antd";
 import TitleBar from "../components/TitleBar";
-import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
-import { db } from "../config/dbConfig";
 import AddBrand from "../components/AddBrand";
 import { useDispatch, useSelector } from "react-redux";
 import { addBrand, setBrands, updateBrand } from "../store/slices/brandSlice";
+import { getRequest, postRequest } from "../services/apiServices";
 
 function Brand() {
   const [state, setState] = useState({
@@ -14,23 +13,15 @@ function Brand() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { brand:{brands}, campaign } = useSelector((state) => state);
+  const brands = useSelector((state) => state.brand.brands);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
   const fetchBrands = useCallback(() => {
-    getDocs(collection(db, "brands"))
-      .then((querySnapshot) => {
-        if (querySnapshot.docs.length) {
-          dispatch(
-            setBrands(
-              querySnapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id,
-                key: doc.id,
-              }))
-            )
-          );
+    getRequest("brands")
+      .then((response) => {
+        if (response.data.length) {
+          dispatch(setBrands(response.data.map(item => ({...item, key: item.id}))));
         }
       })
       .catch((e) => {
@@ -79,40 +70,39 @@ function Brand() {
     }
   };
 
-  const validateBrands = () => {
-    const found = []
-    state.selectedRows.forEach((row) => {
-      const temp = campaign.campaigns.find(item => item.brand.id === row.id);
-      if(temp) {
-        found.push(row.name)
-      }
-    });
-    if(found.length) {
-      return `${found.join(', ')} ${found.length>1?"are":"is"} being used in 1 or more campaigns`;
-    }
-    return null;
-  }
+  // const validateBrands = () => {
+  //   const found = [];
+  //   state.selectedRows.forEach((row) => {
+  //     const temp = campaign.campaigns.find((item) => item.brand.id === row.id);
+  //     if (temp) {
+  //       found.push(row.name);
+  //     }
+  //   });
+  //   if (found.length) {
+  //     return `${found.join(", ")} ${
+  //       found.length > 1 ? "are" : "is"
+  //     } being used in 1 or more campaigns`;
+  //   }
+  //   return null;
+  // };
 
   const handleDelete = async () => {
     try {
-      const message = validateBrands();
-      if(message) {
-        messageApi.open({
-          type: 'error',
-          content: message,
-        });
-        return
-      }
-      const batch = writeBatch(db);
-      state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "brands", row.id));
-      });
-      await batch.commit();
+      // const message = validateBrands();
+      // if (message) {
+      //   messageApi.open({
+      //     type: "error",
+      //     content: message,
+      //   });
+      //   return;
+      // }
+
+      await postRequest("brands/delete", {ids: state.selectedRows.map(item => item.id)});
       dispatch(
         setBrands(brands.filter((item) => !state.selectedRows.includes(item)))
       );
       messageApi.open({
-        type: 'success',
+        type: "success",
         content: "Deleted successfully",
       });
       setState((prev) => ({
@@ -123,8 +113,8 @@ function Brand() {
     } catch (error) {
       console.log(error);
       messageApi.open({
-        type: 'error',
-        content: 'Error while deleting',
+        type: "error",
+        content: "Error while deleting",
       });
     }
   };

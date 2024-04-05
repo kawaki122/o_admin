@@ -18,74 +18,74 @@ function Splash() {
 
   useEffect(() => {
     Promise.all([
-      getDocs(collection(db, "cities")),
-      getDocs(collection(db, "brands")),
-      getDocs(collection(db, "campaigns")),
-      getDocs(collection(db, "locations")),
-      getDocs(collection(db, "riders")),
-      getDocs(collection(db, "tasks")),
+      // getDocs(collection(db, "cities")),
+      // getDocs(collection(db, "brands")),
+      // getDocs(collection(db, "campaigns")),
+      // getDocs(collection(db, "locations")),
+      // getDocs(collection(db, "riders")),
+      // getDocs(collection(db, "tasks")),
     ])
       .then((response) => {
-        const [
-          citySnapshot,
-          brandSnapshot,
-          campaignSnapshot,
-          locationSnapshot,
-          riderSnapshot,
-          taskSnapshot,
-        ] = response;
-        const camps = campaignSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          key: doc.id,
-        }));
-        const locs = locationSnapshot.docs.map((doc) => {
-          const camp = camps.find((item) => item.id === doc.data().campaign);
-          return {
-            ...doc.data(),
-            id: doc.id,
-            key: doc.id,
-            brand: camp?.brand,
-          };
-        });
-        const riders = riderSnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          key: doc.id,
-        }));
-        const tasks = taskSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          const rider = riders.find((item) => item.id === data.rider);
-          return {
-            ...data,
-            id: doc.id,
-            key: doc.id,
-            created: dayjs(data.created).format("MMMM D, YYYY"),
-            rider: rider ? rider : data.rider,
-          };
-        });
-        dispatch(
-          setCities(
-            citySnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
-        dispatch(
-          setBrands(
-            brandSnapshot.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              key: doc.id,
-            }))
-          )
-        );
-        dispatch(setCampaigns(camps));
-        dispatch(setLocations(locs));
-        dispatch(setRiders(riders));
-        dispatch(setTasks(tasks));
+        // const [
+        //   // citySnapshot,
+        //   brandSnapshot,
+        //   campaignSnapshot,
+        //   locationSnapshot,
+        //   riderSnapshot,
+        //   taskSnapshot,
+        // ] = response;
+        // const camps = campaignSnapshot.docs.map((doc) => ({
+        //   ...doc.data(),
+        //   id: doc.id,
+        //   key: doc.id,
+        // }));
+        // const locs = locationSnapshot.docs.map((doc) => {
+        //   const camp = camps.find((item) => item.id === doc.data().campaign);
+        //   return {
+        //     ...doc.data(),
+        //     id: doc.id,
+        //     key: doc.id,
+        //     brand: camp?.brand,
+        //   };
+        // });
+        // const riders = riderSnapshot.docs.map((doc) => ({
+        //   ...doc.data(),
+        //   id: doc.id,
+        //   key: doc.id,
+        // }));
+        // const tasks = taskSnapshot.docs.map((doc) => {
+        //   const data = doc.data();
+        //   const rider = riders.find((item) => item.id === data.rider);
+        //   return {
+        //     ...data,
+        //     id: doc.id,
+        //     key: doc.id,
+        //     created: dayjs(data.created).format("MMMM D, YYYY"),
+        //     rider: rider ? rider : data.rider,
+        //   };
+        // });
+        // dispatch(
+        //   setCities(
+        //     citySnapshot.docs.map((doc) => ({
+        //       ...doc.data(),
+        //       id: doc.id,
+        //       key: doc.id,
+        //     }))
+        //   )
+        // );
+        // dispatch(
+        //   setBrands(
+        //     brandSnapshot.docs.map((doc) => ({
+        //       ...doc.data(),
+        //       id: doc.id,
+        //       key: doc.id,
+        //     }))
+        //   )
+        // );
+        // dispatch(setCampaigns(camps));
+        // dispatch(setLocations(locs));
+        // dispatch(setRiders(riders));
+        // dispatch(setTasks(tasks));
         //Setting user
         onAuthStateChanged(getAuth(), (user) => {
           if (user) {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Form, Modal, Input, Button, message } from "antd";
-import { db } from "../config/dbConfig";
-import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
+import { postRequest, putRequest } from "../services/apiServices";
 
 function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
@@ -21,7 +20,8 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
       setLoading(true);
       let content = null;
       if (selectedEdit) {
-        await updateDoc(doc(db, "cities", selectedEdit.id), {
+        await putRequest("cities", {
+          id: selectedEdit.id,
           city: data.city,
         });
         onFinish("UPDATE_ACTION", {
@@ -30,14 +30,10 @@ function AddCity({ selectedEdit, isOpen, onClose, onFinish }) {
         });
         content = "City updated";
       } else {
-        const ref = await addDoc(collection(db, "cities"), {
+        const response = await postRequest("cities", {
           city: data.city,
         });
-        onFinish("ADD_ACTION", {
-          id: ref.id,
-          key: ref.id,
-          city: data.city,
-        });
+        onFinish("ADD_ACTION", response.data);
         content = "City added";
       }
       messageApi.open({

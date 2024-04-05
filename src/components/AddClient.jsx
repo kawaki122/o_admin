@@ -1,23 +1,20 @@
 import { useState, useEffect } from "react";
-import { Form, Modal, Input, Button, Upload, message, Select } from "antd";
+import { Form, Modal, Input, Button, Upload, message } from "antd";
 import { storage } from "../config/dbConfig";
 import { PlusOutlined } from "@ant-design/icons";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { postRequest, putRequest } from "../services/apiServices";
-import { useSelector } from "react-redux";
 
-function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
+function AddClient({ selectedEdit, isOpen, onClose, onFinish }) {
   const [loading, setLoading] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
-  const clients = useSelector((state) => state.brand.clients);
 
   useEffect(() => {
     if (isOpen && selectedEdit) {
       form.setFieldsValue({
         name: selectedEdit?.name,
-        clientId: selectedEdit.clientId,
         file:
           selectedEdit.logo !== ""
             ? [
@@ -58,21 +55,19 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
       setLoading(true);
       let content = null;
       if (selectedEdit) {
-        await putRequest("brands", {
+        await putRequest("clients", {
           id: selectedEdit.id,
           name: data.name,
           logo: response,
-          clientId: data.clientId,
         });
         onFinish("UPDATE_ACTION", {
           ...selectedEdit,
           name: data.name,
           logo: response,
         });
-        content = "Brand updated";
+        content = "Client updated";
       } else {
-        const res = await postRequest("brands", {
-          clientId: data.clientId,
+        const res = await postRequest("clients", {
           name: data.name,
           logo: response,
         });
@@ -82,9 +77,8 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           key: res.data.id,
           name: data.name,
           logo: response,
-          clientId: data.clientId,
         });
-        content = "Brand added";
+        content = "Client added";
       }
       messageApi.open({
         type: "success",
@@ -129,7 +123,7 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
     <>
       {contextHolder}
       <Modal
-        title={`${selectedEdit ? "Edit" : "Add"} Brand`}
+        title={`${selectedEdit ? "Edit" : "Add"} Client`}
         open={isOpen}
         onCancel={onClose}
         footer={null}
@@ -142,27 +136,14 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
           requiredMark={false}
         >
           <Form.Item
-            label="Brand Name"
+            label="Client Name"
             name="name"
-            rules={[{ required: true, message: "Please input brand name!" }]}
+            rules={[{ required: true, message: "Please input client name!" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="Select Client"
-            name="clientId"
-            rules={[{ required: true, message: "Please select a client!" }]}
-          >
-            <Select>
-              {clients.map((client) => (
-                <Select.Option key={client.id} value={client.id}>
-                  {client.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="Brand Logo (Optional)"
+            label="Client Logo (Optional)"
             valuePropName="fileList"
             name="file"
             rules={[
@@ -232,4 +213,4 @@ function AddBrand({ selectedEdit, isOpen, onClose, onFinish }) {
   );
 }
 
-export default AddBrand;
+export default AddClient;

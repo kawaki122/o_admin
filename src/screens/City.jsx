@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Table, message } from "antd";
 import TitleBar from "../components/TitleBar";
-import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
 import AddCity from "../components/AddCity";
-import { db } from "../config/dbConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { addCity, setCities, updateCity } from "../store/slices/citySlice";
+import { getRequest, postRequest } from "../services/apiServices";
 
 function City() {
   const [state, setState] = useState({
@@ -14,23 +13,19 @@ function City() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { city:{ cities }, location:{ locations } } = useSelector((state) => state);
+  const {
+    city: { cities },
+    location: { locations },
+  } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
   const fetchCities = useCallback(() => {
-    getDocs(collection(db, "cities"))
-      .then((querySnapshot) => {
-        if (querySnapshot.docs.length) {
-          dispatch(
-            setCities(
-              querySnapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id,
-                key: doc.id,
-              }))
-            )
-          );
+    getRequest("cities")
+      .then((response) => {
+        console.log(response);
+        if (response.data.length) {
+          dispatch(setCities(response.data));
         }
       })
       .catch((e) => {
@@ -81,39 +76,39 @@ function City() {
   };
 
   const validateCities = () => {
-    const found = []
+    const found = [];
     state.selectedRows.forEach((row) => {
-      const temp = locations.find(item => item.city === row.id);
-      if(temp) {
-        found.push(row.city)
+      const temp = locations.find((item) => item.city === row.id);
+      if (temp) {
+        found.push(row.city);
       }
     });
-    if(found.length) {
-      return `${found.join(', ')} ${found.length>1?"are":"is"} being used in 1 or more locations`;
+    if (found.length) {
+      return `${found.join(", ")} ${
+        found.length > 1 ? "are" : "is"
+      } being used in 1 or more locations`;
     }
     return null;
-  }
+  };
 
   const handleDelete = async () => {
     try {
       const message = validateCities();
-      if(message) {
+      if (message) {
         messageApi.open({
-          type: 'error',
+          type: "error",
           content: message,
         });
-        return
+        return;
       }
-      const batch = writeBatch(db);
-      state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "cities", row.id));
+      await postRequest("cities/delete", {
+        ids: state.selectedRows.map((item) => item.id),
       });
-      await batch.commit();
       dispatch(
         setCities(cities.filter((item) => !state.selectedRows.includes(item)))
       );
       messageApi.open({
-        type: 'success',
+        type: "success",
         content: "Deleted successfully",
       });
       setState((prev) => ({
@@ -124,8 +119,8 @@ function City() {
     } catch (error) {
       console.log(error);
       messageApi.open({
-        type: 'error',
-        content: 'Error while deleting',
+        type: "error",
+        content: "Error while deleting",
       });
     }
   };

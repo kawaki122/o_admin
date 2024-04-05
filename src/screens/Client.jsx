@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Table, Avatar, message } from "antd";
 import TitleBar from "../components/TitleBar";
-import { collection, getDocs, doc, writeBatch } from "firebase/firestore";
-import { db } from "../config/dbConfig";
-import AddBrand from "../components/AddBrand";
 import { useDispatch, useSelector } from "react-redux";
-import { addClient, setClients, updateClient } from "../store/slices/brandSlice";
+import {
+  addClient,
+  setClients,
+  updateClient,
+} from "../store/slices/brandSlice";
+import AddClient from "../components/AddClient";
+import { getRequest, postRequest } from "../services/apiServices";
 
 function Client() {
   const [state, setState] = useState({
@@ -14,23 +17,15 @@ function Client() {
     selectedRows: [],
     selectedEdit: null,
   });
-  const { brand:{brands}, campaign } = useSelector((state) => state);
+  const clients = useSelector((state) => state.brand.clients);
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
   const fetchClients = useCallback(() => {
-    getDocs(collection(db, "clients"))
-      .then((querySnapshot) => {
-        if (querySnapshot.docs.length) {
-          dispatch(
-            setClients(
-              querySnapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id,
-                key: doc.id,
-              }))
-            )
-          );
+    getRequest("clients")
+      .then((response) => {
+        if (response.data.length) {
+          dispatch(setClients(response.data.map(item => ({...item, key: item.id}))));
         }
       })
       .catch((e) => {
@@ -79,40 +74,38 @@ function Client() {
     }
   };
 
-  const validateClients = () => {
-    const found = []
-    state.selectedRows.forEach((row) => {
-      const temp = campaign.campaigns.find(item => item.brand.id === row.id);
-      if(temp) {
-        found.push(row.name)
-      }
-    });
-    if(found.length) {
-      return `${found.join(', ')} ${found.length>1?"are":"is"} being used in 1 or more campaigns`;
-    }
-    return null;
-  }
+  // const validateClients = () => {
+  //   const found = [];
+  //   state.selectedRows.forEach((row) => {
+  //     const temp = campaign.campaigns.find((item) => item.client.id === row.id);
+  //     if (temp) {
+  //       found.push(row.name);
+  //     }
+  //   });
+  //   if (found.length) {
+  //     return `${found.join(", ")} ${
+  //       found.length > 1 ? "are" : "is"
+  //     } being used in 1 or more campaigns`;
+  //   }
+  //   return null;
+  // };
 
   const handleDelete = async () => {
     try {
-      const message = validateClients();
-      if(message) {
-        messageApi.open({
-          type: 'error',
-          content: message,
-        });
-        return
-      }
-      const batch = writeBatch(db);
-      state.selectedRows.forEach((row) => {
-        batch.delete(doc(db, "clients", row.id));
-      });
-      await batch.commit();
+      // const message = validateClients();
+      // if (message) {
+      //   messageApi.open({
+      //     type: "error",
+      //     content: message,
+      //   });
+      //   return;
+      // }
+      await postRequest('clients/delete', {ids: state.selectedRows.map(item => item.id)});
       dispatch(
-        setClients(brands.filter((item) => !state.selectedRows.includes(item)))
+        setClients(clients.filter((item) => !state.selectedRows.includes(item)))
       );
       messageApi.open({
-        type: 'success',
+        type: "success",
         content: "Deleted successfully",
       });
       setState((prev) => ({
@@ -123,8 +116,8 @@ function Client() {
     } catch (error) {
       console.log(error);
       messageApi.open({
-        type: 'error',
-        content: 'Error while deleting',
+        type: "error",
+        content: "Error while deleting",
       });
     }
   };
@@ -132,7 +125,7 @@ function Client() {
   return (
     <div className="client-wrapper">
       {contextHolder}
-      <AddBrand
+      <AddClient
         isOpen={state.isAddOpen}
         selectedEdit={state.selectedEdit}
         onClose={() => handleAdd(false)}
@@ -140,7 +133,7 @@ function Client() {
       />
       <Table
         bordered
-        dataSource={brands}
+        dataSource={clients}
         loading={state.loading}
         rowSelection={{
           type: "checkbox",
@@ -148,7 +141,7 @@ function Client() {
         }}
         columns={[
           {
-            title: "Brand",
+            title: "Client",
             dataIndex: "name",
             key: "name",
             render: (_, data) => (
